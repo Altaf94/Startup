@@ -1,0 +1,58 @@
+import { Testimonial } from '@/app/types';
+
+export const testimonials: Testimonial[] = [
+  {
+    id: 'review-1',
+    name: 'Sarah Mitchell',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80',
+    rating: 5,
+    comment: 'Absolutely divine! The Truffle Tagliatelle transported me straight to Italy. The freshness of the ingredients and the perfect al dente texture made this the best pasta I\'ve ever had outside of Rome.',
+    date: '2024-01-15',
+    dish: 'Truffle Tagliatelle',
+  },
+  {
+    id: 'review-2',
+    name: 'Michael Chen',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80',
+    rating: 5,
+    comment: 'The Saucy Pan has become our family\'s go-to restaurant. The Lobster Linguine is phenomenal, and the service is always impeccable. Worth every penny!',
+    date: '2024-01-10',
+    dish: 'Lobster Linguine',
+  },
+  {
+    id: 'review-3',
+    name: 'Emily Rodriguez',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80',
+    rating: 5,
+    comment: 'The Carbonara here is authentic and delicious. You can taste the quality of the guanciale and the perfectly creamy sauce. A true culinary masterpiece!',
+    date: '2024-01-08',
+    dish: 'Spaghetti Carbonara',
+  },
+  {
+    id: 'review-4',
+    name: 'James Thompson',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=80',
+    rating: 4,
+    comment: 'Great ambiance and amazing food. The Tiramisù is the best I\'ve tasted in the city. Will definitely be coming back for more!',
+    date: '2024-01-05',
+    dish: 'Classic Tiramisù',
+  },
+  {
+    id: 'review-5',
+    name: 'Amanda Foster',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&q=80',
+    rating: 5,
+    comment: 'The online ordering is seamless, and the food arrived hot and fresh. The Lasagna Bolognese was layered perfection. Highly recommend!',
+    date: '2024-01-02',
+    dish: 'Lasagna Bolognese',
+  },
+  {
+    id: 'review-6',
+    name: 'David Kim',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80',
+    rating: 5,
+    comment: 'As a food critic, I\'m rarely impressed, but The Saucy Pan exceeded all expectations. The Wagyu Beef Ragù is a must-try. Exceptional quality!',
+    date: '2023-12-28',
+    dish: 'Wagyu Beef Ragù',
+  },
+];
