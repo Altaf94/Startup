@@ -29,7 +29,6 @@ export interface CartItem extends MenuItem {
 export interface Cart {
   items: CartItem[];
   subtotal: number;
-  tax: number;
   deliveryFee: number;
   discount: number;
   total: number;
@@ -78,7 +77,7 @@ export interface Order {
   status: OrderStatus;
   timeline: OrderTimeline[];
   subtotal: number;
-  tax: number;
+  tax?: number;
   deliveryFee: number;
   discount: number;
   total: number;

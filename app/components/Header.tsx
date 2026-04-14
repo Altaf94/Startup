@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ShoppingBag, Phone } from 'lucide-react';
+import { Menu, X, ShoppingBag, Phone, MapPin } from 'lucide-react';
 import { useCart } from '@/app/lib/cart-context';
+import { useLocation } from '@/app/lib/location-context';
+import LocationModal from './LocationModal';
 import { cn } from '@/app/lib/utils';
 
 const navLinks = [
@@ -20,6 +22,7 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { itemCount, openCart } = useCart();
+  const { selectedLocation, openModal } = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -81,6 +84,25 @@ export default function Header() {
 
             {/* Right Side Actions */}
             <div className="flex items-center space-x-4">
+              {/* Location Button - Desktop Only */}
+              <button
+                onClick={openModal}
+                className={cn(
+                  'hidden md:flex items-center space-x-2 text-sm font-medium transition-colors px-3 py-2 rounded-lg',
+                  isScrolled
+                    ? 'text-gray-700 hover:bg-amber-50 hover:text-amber-600'
+                    : 'text-white hover:bg-white/20'
+                )}
+              >
+                <MapPin className="w-4 h-4 flex-shrink-0" />
+                <span className="flex flex-col items-start leading-tight">
+                  <span className="text-xs opacity-75">Change Location</span>
+                  <span className="font-semibold truncate max-w-[120px]">
+                    {selectedLocation || 'Select Location'}
+                  </span>
+                </span>
+              </button>
+
               {/* Phone Number - Desktop Only */}
               <a
                 href="tel:+12125550100"
@@ -197,6 +219,9 @@ export default function Header() {
           </>
         )}
       </AnimatePresence>
+
+      {/* Location Modal */}
+      <LocationModal />
     </>
   );
 }

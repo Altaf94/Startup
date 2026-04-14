@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Plus, Clock, Flame } from 'lucide-react';
+import { ArrowRight, Plus, Flame } from 'lucide-react';
 import { featuredDishes } from '@/app/data/menu';
 import { useCart } from '@/app/lib/cart-context';
 import { formatPrice, getSpicyLabel, cn } from '@/app/lib/utils';
@@ -61,10 +61,10 @@ export default function FeaturedDishes() {
             <motion.div
               key={dish.id}
               variants={staggerItem}
-              className="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
+              className="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col h-full"
             >
               {/* Image */}
-              <div className="relative h-56 overflow-hidden">
+              <div className="relative h-56 overflow-hidden flex-shrink-0">
                 <Image
                   src={dish.image}
                   alt={dish.name}
@@ -95,30 +95,22 @@ export default function FeaturedDishes() {
               </div>
 
               {/* Content */}
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-xl font-bold text-gray-900 group-hover:text-amber-600 transition-colors">
-                    {dish.name}
-                  </h3>
-                  <span className="text-xl font-bold text-amber-600">
-                    {formatPrice(dish.price)}
-                  </span>
-                </div>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+              <div className="p-6 flex flex-col flex-1">
+                <h3 className="text-xl font-bold text-gray-900 group-hover:text-amber-600 transition-colors mb-2">
+                  {dish.name}
+                </h3>
+                <p className="text-gray-600 text-sm mb-4 flex-1">
                   {dish.description}
                 </p>
 
-                {/* Meta Info */}
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center space-x-4">
-                    {dish.preparationTime && (
-                      <span className="flex items-center text-gray-500">
-                        <Clock className="w-4 h-4 mr-1" />
-                        {dish.preparationTime}
-                      </span>
-                    )}
+                {/* Bottom row */}
+                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl font-bold text-amber-600">
+                      {formatPrice(dish.price)}
+                    </span>
                     {dish.spicyLevel && dish.spicyLevel > 0 && (
-                      <span className="flex items-center text-red-500">
+                      <span className="flex items-center text-red-500 text-sm">
                         <Flame className="w-4 h-4 mr-1" />
                         {getSpicyLabel(dish.spicyLevel)}
                       </span>

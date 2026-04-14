@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { Plus, Clock, Flame, Search, Filter } from 'lucide-react';
+import { Plus, Flame, Search } from 'lucide-react';
 import { menuItems, menuCategories } from '@/app/data/menu';
 import { useCart } from '@/app/lib/cart-context';
 import { formatPrice, getSpicyLabel, cn } from '@/app/lib/utils';
@@ -89,7 +89,7 @@ export default function MenuGrid({ initialCategory }: MenuGridProps) {
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch"
       >
         <AnimatePresence mode="popLayout">
           {filteredItems.map((item) => (
@@ -100,10 +100,10 @@ export default function MenuGrid({ initialCategory }: MenuGridProps) {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
+              className="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col h-full"
             >
               {/* Image */}
-              <div className="relative h-48 overflow-hidden">
+              <div className="relative h-48 overflow-hidden flex-shrink-0">
                 <Image
                   src={item.image}
                   alt={item.name}
@@ -134,30 +134,22 @@ export default function MenuGrid({ initialCategory }: MenuGridProps) {
               </div>
 
               {/* Content */}
-              <div className="p-5">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-lg font-bold text-gray-900 group-hover:text-amber-600 transition-colors">
-                    {item.name}
-                  </h3>
-                  <span className="text-lg font-bold text-amber-600">
-                    {formatPrice(item.price)}
-                  </span>
-                </div>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+              <div className="p-5 flex flex-col flex-1">
+                <h3 className="text-lg font-bold text-gray-900 group-hover:text-amber-600 transition-colors mb-2">
+                  {item.name}
+                </h3>
+                <p className="text-gray-600 text-sm mb-4 flex-1">
                   {item.description}
                 </p>
 
-                {/* Meta Info */}
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center space-x-3">
-                    {item.preparationTime && (
-                      <span className="flex items-center text-gray-500">
-                        <Clock className="w-4 h-4 mr-1" />
-                        {item.preparationTime}
-                      </span>
-                    )}
+                {/* Bottom row */}
+                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-bold text-amber-600">
+                      {formatPrice(item.price)}
+                    </span>
                     {item.spicyLevel && item.spicyLevel > 0 && (
-                      <span className="flex items-center text-red-500">
+                      <span className="flex items-center text-red-500 text-sm">
                         <Flame className="w-4 h-4 mr-1" />
                         {getSpicyLabel(item.spicyLevel)}
                       </span>
@@ -165,20 +157,11 @@ export default function MenuGrid({ initialCategory }: MenuGridProps) {
                   </div>
                   <button
                     onClick={() => handleAddToCart(item)}
-                    className="text-amber-600 hover:text-amber-700 font-semibold transition-colors"
+                    className="text-amber-600 hover:text-amber-700 font-semibold text-sm transition-colors"
                   >
                     Add to Cart
                   </button>
                 </div>
-
-                {/* Allergens */}
-                {item.allergens && item.allergens.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-gray-100">
-                    <p className="text-xs text-gray-400">
-                      Allergens: {item.allergens.join(', ')}
-                    </p>
-                  </div>
-                )}
               </div>
             </motion.div>
           ))}

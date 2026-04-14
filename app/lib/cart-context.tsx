@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useState, useEffect, ReactNode } from 'react';
 import { CartItem, MenuItem } from '@/app/types';
 
 interface CartState {
@@ -29,17 +29,13 @@ interface CartContextType {
   openCart: () => void;
   closeCart: () => void;
   subtotal: number;
-  tax: number;
   deliveryFee: number;
+  setDeliveryFee: (fee: number) => void;
   total: number;
   itemCount: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
-
-const TAX_RATE = 0.0875; // 8.75% Karachi tax
-const DELIVERY_FEE = 4.99;
-const FREE_DELIVERY_THRESHOLD = 40;
 
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
@@ -97,6 +93,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, { items: [], isOpen: false });
+  const [deliveryFee, setDeliveryFee] = useState(0);
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -120,9 +117,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     (sum, item) => sum + item.price * item.quantity,
     0
   );
-  const tax = subtotal * TAX_RATE;
-  const deliveryFee = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
-  const total = subtotal + tax + deliveryFee;
+  const total = subtotal + deliveryFee;
   const itemCount = state.items.reduce((count, item) => count + item.quantity, 0);
 
   const value: CartContextType = {
@@ -137,8 +132,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     openCart: () => dispatch({ type: 'OPEN_CART' }),
     closeCart: () => dispatch({ type: 'CLOSE_CART' }),
     subtotal,
-    tax,
     deliveryFee,
+    setDeliveryFee,
     total,
     itemCount,
   };

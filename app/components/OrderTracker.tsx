@@ -252,7 +252,7 @@ export default function OrderTracker() {
                     </p>
                   </div>
                 </div>
-              ))}
+                ))}
             </div>
 
             {/* Summary */}
@@ -260,10 +260,6 @@ export default function OrderTracker() {
               <div className="flex justify-between">
                 <span className="text-gray-500">Subtotal</span>
                 <span>{formatPrice(order.subtotal)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Tax</span>
-                <span>{formatPrice(order.tax)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Delivery Fee</span>

@@ -25,7 +25,7 @@ import type { DeliveryType, PaymentMethod, CustomerDetails } from '@/app/types';
 type CheckoutStep = 'details' | 'payment' | 'confirmation';
 
 export default function CheckoutForm() {
-  const { items, subtotal, tax, deliveryFee, total, clearCart } = useCart();
+  const { items, subtotal, deliveryFee, total, clearCart } = useCart();
   const [step, setStep] = useState<CheckoutStep>('details');
   const [deliveryType, setDeliveryType] = useState<DeliveryType>('delivery');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('credit_card');
@@ -509,18 +509,8 @@ export default function CheckoutForm() {
                   <span>{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
-                  <span>Tax</span>
-                  <span>{formatPrice(tax)}</span>
-                </div>
-                <div className="flex justify-between text-gray-600">
                   <span>Delivery</span>
-                  <span>
-                    {deliveryFee === 0 ? (
-                      <span className="text-green-600">Free</span>
-                    ) : (
-                      formatPrice(deliveryFee)
-                    )}
-                  </span>
+                  <span>{deliveryFee === 0 ? <span className="text-gray-400 text-xs">Set address</span> : formatPrice(deliveryFee)}</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-100">
                   <span>Total</span>

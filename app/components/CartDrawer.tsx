@@ -16,7 +16,6 @@ export default function CartDrawer() {
     removeItem,
     updateQuantity,
     subtotal,
-    tax,
     deliveryFee,
     total,
     itemCount,
@@ -165,14 +164,10 @@ export default function CartDrawer() {
                     <span>{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-gray-600">
-                    <span>Tax</span>
-                    <span>{formatPrice(tax)}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-600">
                     <span>Delivery</span>
                     <span>
                       {deliveryFee === 0 ? (
-                        <span className="text-green-600">Free</span>
+                        <span className="text-gray-400 text-xs">Set address to calculate</span>
                       ) : (
                         formatPrice(deliveryFee)
                       )}

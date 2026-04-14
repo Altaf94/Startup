@@ -11,7 +11,7 @@ import { formatPrice } from '@/app/lib/utils';
 import { staggerContainer, staggerItem } from '@/app/lib/animations';
 
 export default function CartPage() {
-  const { items, updateQuantity, removeItem, subtotal, tax, deliveryFee, total, itemCount } = useCart();
+  const { items, updateQuantity, removeItem, subtotal, deliveryFee, total, itemCount } = useCart();
   const router = useRouter();
 
   if (items.length === 0) {
@@ -141,25 +141,15 @@ export default function CartPage() {
                   <span>{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
-                  <span>Estimated Tax</span>
-                  <span>{formatPrice(tax)}</span>
-                </div>
-                <div className="flex justify-between text-gray-600">
                   <span>Delivery Fee</span>
                   <span>
                     {deliveryFee === 0 ? (
-                      <span className="text-green-600">Free</span>
+                      <span className="text-gray-400 text-xs">Set address to calculate</span>
                     ) : (
                       formatPrice(deliveryFee)
                     )}
                   </span>
                 </div>
-
-                {deliveryFee > 0 && (
-                  <p className="text-xs text-gray-500 py-2">
-                    Add {formatPrice(40 - subtotal)} more for free delivery!
-                  </p>
-                )}
 
                 <div className="flex justify-between text-lg font-bold pt-4 border-t border-gray-100">
                   <span>Total</span>
