@@ -7,6 +7,18 @@ import { useLocation, OrderType } from '@/app/lib/location-context';
 import { branchLocations } from '@/app/data/locations';
 import { cn } from '@/app/lib/utils';
 
+// Forward geocode: address to coordinates
+async function forwardGeocode(address: string): Promise<{ lat: number; lng: number } | null> {
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`,
+    { headers: { 'Accept-Language': 'en-US,en', 'Accept': 'application/json' } }
+  );
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (!data || !data[0]) return null;
+  return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+}
+
 async function reverseGeocode(lat: number, lng: number): Promise<string> {
   const res = await fetch(
     `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=18&addressdetails=1`,
@@ -26,6 +38,7 @@ export default function LocationModal() {
   const { isModalOpen, confirmLocation, closeModal, orderType, setOrderType, selectedLocation, setSelectedLocation, setLocationWithCoords } = useLocation();
   const [locating, setLocating] = useState(false);
   const [locError, setLocError] = useState('');
+  const [lastGeocoded, setLastGeocoded] = useState<string>('');
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -66,8 +79,27 @@ export default function LocationModal() {
     );
   };
 
-  const handleSelect = () => {
-    if (selectedLocation) confirmLocation();
+  // When confirming, if delivery and address is typed, geocode it
+  const handleSelect = async () => {
+    if (!selectedLocation) return;
+    if (orderType === 'delivery') {
+      // Only geocode if address changed
+      if (selectedLocation !== lastGeocoded) {
+        setLocating(true);
+        setLocError('');
+        const coords = await forwardGeocode(selectedLocation);
+        setLocating(false);
+        if (coords) {
+          setLocationWithCoords(selectedLocation, coords);
+          setLastGeocoded(selectedLocation);
+          confirmLocation();
+        } else {
+          setLocError('Could not find this address. Try being more specific.');
+        }
+        return;
+      }
+    }
+    confirmLocation();
   };
 
   return (
@@ -144,11 +176,12 @@ export default function LocationModal() {
                       <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <input
                         type="text"
-                        placeholder="Type your address..."
+                        placeholder="Manual address entry disabled"
                         value={selectedLocation}
-                        onChange={(e) => setSelectedLocation(e.target.value)}
-                        className="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none"
+                        disabled
+                        className="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-xl text-gray-400 bg-gray-100 cursor-not-allowed"
                       />
+                
                     </div>
                   )}
 

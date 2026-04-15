@@ -103,10 +103,13 @@ export default function MenuGrid({ initialCategory }: MenuGridProps) {
               className="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col h-full"
             >
               {/* Image */}
-              <div className="relative h-48 overflow-hidden flex-shrink-0">
+              <div className="relative h-65 overflow-hidden flex-shrink-0">
                 <Image
                   src={item.image}
                   alt={item.name}
+                   width={item.imageWidth }
+  height={item.imageHeight }
+                  
                   fill
                   className="object-cover group-hover:scale-110 transition-transform duration-500"
                 />

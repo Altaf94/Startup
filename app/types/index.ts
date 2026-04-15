@@ -11,6 +11,8 @@ export interface MenuItem {
   spicyLevel?: 0 | 1 | 2 | 3;
   allergens?: string[];
   preparationTime?: string;
+   imageWidth?: number;
+  imageHeight?: number;
 }
 
 export interface MenuCategory {
