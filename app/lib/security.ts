@@ -37,6 +37,7 @@ export function initializeSecurityMeasures() {
       return false;
     }
   });
+}
 
 // Server-side validation helpers
 export function validateOrderData(data: any): boolean {
