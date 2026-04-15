@@ -2,22 +2,11 @@
 
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { X, Navigation, Loader2, MapPin, Check } from 'lucide-react';
+import { Navigation, Loader2, MapPin, Check } from 'lucide-react';
 import { useLocation, OrderType } from '@/app/lib/location-context';
+import { useCart } from '@/app/lib/cart-context';
 import { branchLocations } from '@/app/data/locations';
 import { cn } from '@/app/lib/utils';
-
-// Forward geocode: address to coordinates
-async function forwardGeocode(address: string): Promise<{ lat: number; lng: number } | null> {
-  const res = await fetch(
-    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`,
-    { headers: { 'Accept-Language': 'en-US,en', 'Accept': 'application/json' } }
-  );
-  if (!res.ok) return null;
-  const data = await res.json();
-  if (!data || !data[0]) return null;
-  return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
-}
 
 async function reverseGeocode(lat: number, lng: number): Promise<string> {
   const res = await fetch(
@@ -36,9 +25,9 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
 
 export default function LocationModal() {
   const { isModalOpen, confirmLocation, closeModal, orderType, setOrderType, selectedLocation, setSelectedLocation, setLocationWithCoords } = useLocation();
+  const { setDeliveryFee } = useCart();
   const [locating, setLocating] = useState(false);
   const [locError, setLocError] = useState('');
-  const [lastGeocoded, setLastGeocoded] = useState<string>('');
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -67,35 +56,31 @@ export default function LocationModal() {
             setSelectedLocation(nearest.name);
           }
         } catch {
-          setLocError('Could not resolve your address. Please select manually.');
+          setLocError('Could not resolve your address. Please try again.');
         }
         setLocating(false);
       },
-      () => {
-        setLocError('Location access denied. Please select manually.');
+      (err) => {
+        if (err.code === 1) {
+          setLocError('Permission denied. Please allow location access in your browser and try again.');
+        } else if (err.code === 2) {
+          setLocError('Location unavailable. Please type your address below.');
+        } else {
+          setLocError('Location timed out. Please type your address below.');
+        }
         setLocating(false);
       },
-      { timeout: 10000 }
+      { timeout: 10000, enableHighAccuracy: false }
     );
   };
 
-  // When confirming, if delivery and address is typed, geocode it
+  // Handle confirm
   const handleSelect = async () => {
     if (!selectedLocation) return;
     if (orderType === 'delivery') {
-      // Only geocode if address changed
-      if (selectedLocation !== lastGeocoded) {
-        setLocating(true);
-        setLocError('');
-        const coords = await forwardGeocode(selectedLocation);
-        setLocating(false);
-        if (coords) {
-          setLocationWithCoords(selectedLocation, coords);
-          setLastGeocoded(selectedLocation);
-          confirmLocation();
-        } else {
-          setLocError('Could not find this address. Try being more specific.');
-        }
+      // Only geocode if we have the coordinates already (from GPS)
+      if (selectedLocation && !navigator.geolocation) {
+        confirmLocation();
         return;
       }
     }
@@ -125,14 +110,8 @@ export default function LocationModal() {
           >
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
               {/* Header */}
-              <div className="flex items-center justify-between p-5 border-b border-gray-100">
+              <div className="p-5 border-b border-gray-100">
                 <h2 className="text-xl font-bold text-gray-900">Select your order type</h2>
-                <button
-                  onClick={closeModal}
-                  className="p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
               </div>
 
               <div className="p-6 space-y-5">
@@ -141,7 +120,14 @@ export default function LocationModal() {
                   {(['delivery', 'pickup'] as OrderType[]).map((type) => (
                     <button
                       key={type}
-                      onClick={() => { setOrderType(type); setSelectedLocation(''); setLocError(''); }}
+                      onClick={() => { 
+                        setOrderType(type); 
+                        setSelectedLocation(''); 
+                        setLocError('');
+                        if (type === 'pickup') {
+                          setDeliveryFee(0);
+                        }
+                      }}
                       className={cn(
                         'flex-1 py-2 rounded-full text-sm font-semibold uppercase tracking-wide transition-all',
                         orderType === type
@@ -170,18 +156,20 @@ export default function LocationModal() {
                     <p className="text-xs text-red-500 text-center">{locError}</p>
                   )}
 
-                  {/* Delivery: text input */}
+                  {/* Delivery: manual address input */}
                   {orderType === 'delivery' && (
                     <div className="relative">
                       <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <input
                         type="text"
-                        placeholder="Manual address entry disabled"
+                        placeholder="Or type your delivery address (e.g., Qamar Abbas)"
                         value={selectedLocation}
-                        disabled
-                        className="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-xl text-gray-400 bg-gray-100 cursor-not-allowed"
+                        onChange={(e) => {
+                          setSelectedLocation(e.target.value);
+                          if (locError) setLocError('');
+                        }}
+                        className="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-xl text-gray-900 bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none transition-all text-sm"
                       />
-                
                     </div>
                   )}
 

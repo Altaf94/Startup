@@ -5,14 +5,18 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useCart } from '@/app/lib/cart-context';
+import { useLocation } from '@/app/lib/location-context';
 import { formatPrice } from '@/app/lib/utils';
 import { staggerContainer, staggerItem } from '@/app/lib/animations';
 
 export default function CartPage() {
   const { items, updateQuantity, removeItem, subtotal, deliveryFee, total, itemCount } = useCart();
+  const { selectedLocation, orderType } = useLocation();
   const router = useRouter();
+  
+  const isAddressSet = orderType === 'pickup' || (orderType === 'delivery' && selectedLocation);
 
   if (items.length === 0) {
     return (
@@ -143,8 +147,10 @@ export default function CartPage() {
                 <div className="flex justify-between text-gray-600">
                   <span>Delivery Fee</span>
                   <span>
-                    {deliveryFee === 0 ? (
-                      <span className="text-gray-400 text-xs">Set address to calculate</span>
+                    {deliveryFee === 0 && orderType === 'delivery' ? (
+                      <span className="text-gray-400 text-xs">Enter address to proceed</span>
+                    ) : deliveryFee === 0 && orderType === 'pickup' ? (
+                      <span className="text-green-600 font-semibold">Free</span>
                     ) : (
                       formatPrice(deliveryFee)
                     )}
@@ -157,12 +163,22 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <Link
-                href="/checkout"
-                className="mt-6 w-full block py-4 text-center bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition-colors"
-              >
-                Proceed to Checkout
-              </Link>
+              {isAddressSet ? (
+                <Link
+                  href="/checkout"
+                  className="mt-6 w-full block py-4 text-center bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition-colors"
+                >
+                  Proceed to Checkout
+                </Link>
+              ) : (
+                <button
+                  disabled
+                  className="mt-6 w-full block py-4 text-center bg-gray-300 text-gray-500 font-semibold rounded-xl cursor-not-allowed"
+                  title="Please set delivery address to proceed"
+                >
+                  Set Address to Proceed
+                </button>
+              )}
 
               {/* Promo Code */}
               <div className="mt-6">

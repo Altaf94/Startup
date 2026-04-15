@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useCart } from './cart-context';
 
 export type OrderType = 'delivery' | 'pickup';
@@ -43,6 +43,11 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   const [selectedLocation, setSelectedLocationState] = useState('');
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Open modal on mount so user can set location before ordering
+  useEffect(() => {
+    setIsModalOpen(true);
+  }, []);
 
   const setSelectedLocation = (location: string) => {
     setSelectedLocationState(location);

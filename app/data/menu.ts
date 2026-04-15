@@ -78,11 +78,19 @@ export const menuItems: MenuItem[] = [
     isPopular: true,
   },
   {
+    id: 'fettuccine-alfredo-classico',
+    name: 'Fettuccine Alfredo Classico',
+    description: 'A timeless Italian favorite featuring fresh fettuccine tossed in a smooth butter cream sauce enriched with aged parmesan. Simple, elegant, and deeply comforting.',
+    price: 950,
+    image: '/images/Fettuccine Alfredo Classico.jpg',
+    category: 'classic-pasta',
+  },
+  {
     id: 'aglio-olio-spaghetti-ravioli-bites',
     name: 'Aglio Olio Spaghetti with Crispy Ravioli Bites',
     description: 'Classic garlic and olive oil spaghetti paired with golden crispy fried mushroom cheese ravioli bites. A fusion of simplicity and indulgent crunch.',
     price: 1200,
-    image: 'https://images.unsplash.com/photo-1595295333158-4742f28fbd85?w=800&q=80',
+    image: '/images/aglio-olio-spaghetti-ravioli-bites.jpeg',
     category: 'classic-pasta',
   },
   {
@@ -90,7 +98,7 @@ export const menuItems: MenuItem[] = [
     name: 'Spinach & Cheese Ravioli in Creamy Mushroom Pesto',
     description: 'Soft ravioli filled with spinach and cheese, tossed in a creamy mushroom pesto sauce. Earthy, rich, and luxuriously smooth.',
     price: 1300,
-    image: '/images/Spinach & Cheese Ravioli in Creamy Mushroom Pesto.png',
+    image: '/images/Spinach%20%26%20Cheese%20Ravioli%20in%20Creamy%20Mushroom%20Pesto.png',
     category: 'ravioli',
     
   },

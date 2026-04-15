@@ -108,7 +108,7 @@ export default function RootLayout({
               name: "The Saucy Pan",
               image: "https://thesaucypan.com/og-image.jpg",
               url: "https://thesaucypan.com",
-              telephone: "+1-212-555-0100",
+              telephone: "+92-337-3594376",
               address: {
                 "@type": "PostalAddress",
                 streetAddress: "123 Main Street",
@@ -138,6 +138,41 @@ export default function RootLayout({
               hasPickupService: "True",
               menu: "https://thesaucypan.com/menu",
             }),
+          }}
+        />
+        
+        {/* Security Initialization */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                // Disable right-click context menu
+                document.addEventListener('contextmenu', (e) => {
+                  e.preventDefault();
+                  return false;
+                });
+
+                // Disable keyboard shortcuts for developer tools
+                document.addEventListener('keydown', (e) => {
+                  if (e.key === 'F12' || 
+                      ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'I') ||
+                      ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'C') ||
+                      ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'J') ||
+                      ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'K')) {
+                    e.preventDefault();
+                    return false;
+                  }
+                });
+
+                // Disable console methods
+                const noop = () => {};
+                window.console.log = noop;
+                window.console.debug = noop;
+                window.console.info = noop;
+                window.console.warn = noop;
+                window.console.error = noop;
+              })();
+            `,
           }}
         />
       </head>

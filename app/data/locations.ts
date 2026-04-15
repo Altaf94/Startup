@@ -6,7 +6,7 @@ export const branchLocations: BranchLocation[] = [
     name: 'Paktameer Plaza, Gulshan-e-Iqbal Block 14',
     address: 'Paktameer Plaza, Gulshan-e-Iqbal, Block 14, Karachi',
     phone: '+92-XXX-XXXXXXX',
-    email: 'info@thesaucypan.com',
+    email: 'thesaucypan.tsp@gmail.com',
     hours: 'Mon-Sun: 12:00 PM - 12:00 AM',
     coordinates: {
       lat: 24.9215,

@@ -45,7 +45,7 @@ export default function ContactPage() {
               <h3 className="text-xl font-bold text-gray-900 mb-6">Quick Contact</h3>
               <div className="space-y-4">
                 <a
-                  href="tel:+12125550100"
+                  href="tel:+923373594376"
                   className="flex items-center space-x-3 text-gray-600 hover:text-amber-600 transition-colors"
                 >
                   <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
@@ -53,11 +53,11 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Call Us</p>
-                    <p className="font-medium">(212) 555-0100</p>
+                    <p className="font-medium">0337 3594376</p>
                   </div>
                 </a>
                 <a
-                  href="https://wa.me/12125550100?text=Hi%20The%20Saucy%20Pan!%20I%20would%20like%20to%20place%20an%20order."
+                  href="https://wa.me/923373594376?text=Hi%20The%20Saucy%20Pan!%20I%20would%20like%20to%20place%20an%20order."
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center space-x-3 text-gray-600 hover:text-amber-600 transition-colors"
@@ -67,7 +67,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">WhatsApp Order</p>
-                    <p className="font-medium">(212) 555-0100</p>
+                    <p className="font-medium">0337 3594376</p>
                   </div>
                 </a>
                 <div className="flex items-center space-x-3 text-gray-600">

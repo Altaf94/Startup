@@ -21,7 +21,7 @@ const footerLinks = {
     { href: '/contact', label: 'Contact' },
   ],
   legal: [
-    { href: '/offers', label: 'Offers & Deals' },
+    { href: '/offers', label: 'Make Your Own Bowl' },
     { href: '/faq', label: 'FAQ' },
     { href: '/privacy', label: 'Privacy Policy' },
     { href: '/terms', label: 'Terms of Service' },
@@ -132,19 +132,19 @@ export default function Footer() {
               <li className="flex items-center space-x-3">
                 <Phone className="w-5 h-5 text-amber-500 flex-shrink-0" />
                 <a
-                  href="tel:+12125550100"
+                  href="tel:+923373594376"
                   className="text-gray-400 hover:text-white transition-colors text-sm"
                 >
-                  (212) 555-0100
+                  0337 3594376
                 </a>
               </li>
               <li className="flex items-center space-x-3">
                 <Mail className="w-5 h-5 text-amber-500 flex-shrink-0" />
                 <a
-                  href="mailto:info@thesaucypan.com"
+                  href="mailto:thesaucypan.tsp@gmail.com"
                   className="text-gray-400 hover:text-white transition-colors text-sm"
                 >
-                  info@thesaucypan.com
+                  thesaucypan.tsp@gmail.com
                 </a>
               </li>
               <li className="flex items-start space-x-3">
@@ -160,7 +160,7 @@ export default function Footer() {
 
       {/* WhatsApp Button */}
       <a
-        href="https://wa.me/12125550100?text=Hi%20The%20Saucy%20Pan!%20I%20would%20like%20to%20place%20an%20order."
+        href="https://wa.me/923373594376?text=Hi%20The%20Saucy%20Pan!%20I%20would%20like%20to%20place%20an%20order."
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110"

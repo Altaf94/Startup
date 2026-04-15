@@ -48,13 +48,13 @@ export default function Header() {
             <Link href="/" className="flex items-center space-x-2 group">
               <span
                 className={cn(
-                  'bg-white rounded-xl p-1 md:p-2 shadow-md flex items-center',
+                  'bg-black rounded-2xl p-1 md:p-2 shadow-md flex items-center',
                   isScrolled ? 'shadow' : 'shadow-lg'
                 )}
                 style={{ lineHeight: 0 }}
               >
                 <img
-                  src="/images/logo.jpeg"
+                  src="/images/logo.png"
                   alt="The Saucy Pan Logo"
                   className={cn(
                     'h-16 w-auto md:h-24 transition-all duration-300',
@@ -105,14 +105,14 @@ export default function Header() {
 
               {/* Phone Number - Desktop Only */}
               <a
-                href="tel:+12125550100"
+                href="tel:+923373594376"
                 className={cn(
                   'hidden md:flex items-center space-x-2 text-sm font-medium transition-colors',
                   isScrolled ? 'text-gray-700 hover:text-amber-600' : 'text-white hover:text-amber-300'
                 )}
               >
                 <Phone className="w-4 h-4" />
-                <span>(212) 555-0100</span>
+                <span>0337 3594376</span>
               </a>
 
               {/* Cart Button */}
@@ -207,11 +207,11 @@ export default function Header() {
                     Order Now
                   </Link>
                   <a
-                    href="tel:+12125550100"
+                    href="tel:+923373594376"
                     className="flex items-center justify-center space-x-2 mt-4 py-3 text-amber-700 font-medium"
                   >
                     <Phone className="w-5 h-5" />
-                    <span>(212) 555-0100</span>
+                    <span>0337 3594376</span>
                   </a>
                 </div>
               </div>

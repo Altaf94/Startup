@@ -17,6 +17,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useCart } from '@/app/lib/cart-context';
+import { useLocation } from '@/app/lib/location-context';
 import { formatPrice, cn, isValidEmail, isValidPhone, generateWhatsAppLink } from '@/app/lib/utils';
 import { generateOrderId } from '@/app/data/orders';
 import { fadeInUp, staggerContainer, staggerItem } from '@/app/lib/animations';
@@ -26,6 +27,7 @@ type CheckoutStep = 'details' | 'payment' | 'confirmation';
 
 export default function CheckoutForm() {
   const { items, subtotal, deliveryFee, total, clearCart } = useCart();
+  const { orderType, selectedLocation } = useLocation();
   const [step, setStep] = useState<CheckoutStep>('details');
   const [deliveryType, setDeliveryType] = useState<DeliveryType>('delivery');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('credit_card');
@@ -231,7 +233,7 @@ export default function CheckoutForm() {
                       name="phone"
                       value={customer.phone}
                       onChange={handleInputChange}
-                      placeholder="(212) 555-0100"
+                      placeholder="0337 3594376"
                       className={cn(
                         'w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-amber-200 outline-none transition-all',
                         errors.phone ? 'border-red-500' : 'border-gray-200 focus:border-amber-500'
@@ -510,7 +512,15 @@ export default function CheckoutForm() {
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Delivery</span>
-                  <span>{deliveryFee === 0 ? <span className="text-gray-400 text-xs">Set address</span> : formatPrice(deliveryFee)}</span>
+                  <span>
+                    {deliveryFee === 0 && orderType === 'delivery' ? (
+                      <span className="text-gray-400 text-xs">Set address</span>
+                    ) : deliveryFee === 0 && orderType === 'pickup' ? (
+                      <span className="text-green-600 font-semibold">Free</span>
+                    ) : (
+                      formatPrice(deliveryFee)
+                    )}
+                  </span>
                 </div>
                 <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-100">
                   <span>Total</span>

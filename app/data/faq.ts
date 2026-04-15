@@ -17,7 +17,7 @@ export const faqs: FAQ[] = [
   {
     id: 'faq-3',
     question: 'Can I modify or cancel my order?',
-    answer: 'You can modify or cancel your order within 5 minutes of placing it. Please contact us immediately at (212) 555-0100 or through WhatsApp. Once the kitchen starts preparing your order, modifications may not be possible.',
+    answer: 'You can modify or cancel your order within 5 minutes of placing it. Please contact us immediately at 0337 3594376 or through WhatsApp. Once the kitchen starts preparing your order, modifications may not be possible.',
     category: 'ordering',
   },
   {
@@ -74,7 +74,7 @@ export const faqs: FAQ[] = [
   {
     id: 'faq-12',
     question: 'Can I place a large order for pickup?',
-    answer: 'Absolutely! We welcome large orders for pickup. For orders serving 10+ people, please call us in advance at (212) 555-0100 to ensure we have adequate preparation time and can accommodate your needs.',
+    answer: 'Absolutely! We welcome large orders for pickup. For orders serving 10+ people, please call us in advance at 0337 3594376 to ensure we have adequate preparation time and can accommodate your needs.',
     category: 'dining',
   },
   // Rewards & Offers

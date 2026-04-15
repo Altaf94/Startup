@@ -1,15 +1,16 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Tag, Calendar, ArrowRight, Copy, Check } from 'lucide-react';
+import { Tag, Calendar, Copy, Check } from 'lucide-react';
 import { offers } from '@/app/data/offers';
 import { formatDate } from '@/app/lib/utils';
+import PastaBowlBuilder from '@/app/components/PastaBowlBuilder';
 
 export const metadata: Metadata = {
-  title: 'Offers & Deals',
+  title: 'Make Your Own Bowl',
   description: 'Discover exclusive deals and special offers at The Saucy Pan. Save on your favorite Italian dishes with our current promotions.',
   openGraph: {
-    title: 'Offers & Deals | The Saucy Pan',
+    title: 'Make Your Own Bowl',
     description: 'Discover exclusive deals and special offers at The Saucy Pan.',
     images: ['/og-image.jpg'],
   },
@@ -21,13 +22,11 @@ export default function OffersPage() {
       {/* Page Header */}
       <div className="bg-gradient-to-r from-amber-600 to-orange-600 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Offers & Deals
-          </h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto">
-            Save on your favorite Italian dishes with our exclusive promotions 
-            and special offers.
-          </p>
+          <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-4 leading-tight">
+                MAKE YOUR OWN<br />
+                <span className="text-amber-400">PASTA BOWL</span>
+              </h2>
+         
         </div>
       </div>
 
@@ -105,6 +104,28 @@ export default function OffersPage() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Make Your Own Pasta Bowl */}
+        <div className="mt-16">
+          {/* Hero Banner */}
+          <div className="relative bg-gray-900 rounded-3xl overflow-hidden">
+            {/* Background pattern */}
+            <div className="absolute inset-0 opacity-10"
+              style={{
+                backgroundImage: 'radial-gradient(circle at 20% 50%, #f59e0b 0%, transparent 50%), radial-gradient(circle at 80% 20%, #f97316 0%, transparent 40%)',
+              }}
+            />
+            <div className="relative px-8 py-12 lg:px-16 lg:py-16 text-center">
+             
+              <p className="text-gray-300 text-lg max-w-xl mx-auto mb-2">
+                Craft your perfect plate, your way.
+              </p>
+              <p className="text-amber-400 font-semibold text-xl">Starting at Rs. 950</p>
+            </div>
+          </div>
+
+          <PastaBowlBuilder />
         </div>
 
         {/* Newsletter CTA */}

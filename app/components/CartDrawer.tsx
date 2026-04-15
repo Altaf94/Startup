@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { X, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import { useCart } from '@/app/lib/cart-context';
+import { useLocation } from '@/app/lib/location-context';
 import { formatPrice } from '@/app/lib/utils';
 import { slideInRight, overlayFade } from '@/app/lib/animations';
 
@@ -20,6 +21,8 @@ export default function CartDrawer() {
     total,
     itemCount,
   } = useCart();
+  const { orderType, selectedLocation } = useLocation();
+  const isAddressSet = orderType === 'pickup' || (orderType === 'delivery' && selectedLocation);
 
   return (
     <AnimatePresence>
@@ -166,8 +169,10 @@ export default function CartDrawer() {
                   <div className="flex justify-between text-gray-600">
                     <span>Delivery</span>
                     <span>
-                      {deliveryFee === 0 ? (
-                        <span className="text-gray-400 text-xs">Set address to calculate</span>
+                      {deliveryFee === 0 && orderType === 'delivery' ? (
+                        <span className="text-gray-400 text-xs">Enter address to proceed</span>
+                      ) : deliveryFee === 0 && orderType === 'pickup' ? (
+                        <span className="text-green-600 font-semibold">Free</span>
                       ) : (
                         formatPrice(deliveryFee)
                       )}
@@ -187,13 +192,23 @@ export default function CartDrawer() {
                 )}
 
                 {/* Checkout Button */}
-                <Link
-                  href="/checkout"
-                  onClick={closeCart}
-                  className="block w-full py-3 px-6 text-center bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-lg transition-colors"
-                >
-                  Proceed to Checkout
-                </Link>
+                {isAddressSet ? (
+                  <Link
+                    href="/checkout"
+                    onClick={closeCart}
+                    className="block w-full py-3 px-6 text-center bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-lg transition-colors"
+                  >
+                    Proceed to Checkout
+                  </Link>
+                ) : (
+                  <button
+                    disabled
+                    className="block w-full py-3 px-6 text-center bg-gray-300 text-gray-500 font-semibold rounded-lg cursor-not-allowed"
+                    title="Please set delivery address to proceed"
+                  >
+                    Set Address to Proceed
+                  </button>
+                )}
 
                 {/* Continue Shopping */}
                 <button

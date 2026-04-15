@@ -123,7 +123,7 @@ export default function PrivacyPage() {
           </p>
           <ul>
             <li>Email: privacy@bellapasta.com</li>
-            <li>Phone: (212) 555-0100</li>
+            <li>Phone: 0337 3594376</li>
             <li>Address: 123 Main Street, Downtown, NY 10001</li>
           </ul>
         </div>

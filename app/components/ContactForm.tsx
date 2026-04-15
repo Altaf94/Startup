@@ -49,12 +49,26 @@ export default function ContactForm() {
 
     setIsSubmitting(true);
 
-    // Simulate form submission
-    // TODO: Integrate with backend API or email service
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
 
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+      if (response.ok) {
+        setIsSubmitting(false);
+        setIsSubmitted(true);
+      } else {
+        throw new Error('Failed to submit form');
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setErrors({ submit: 'Failed to send message. Please try again.' });
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -100,6 +114,16 @@ export default function ContactForm() {
       onSubmit={handleSubmit}
       className="space-y-6"
     >
+      {errors.submit && (
+        <motion.div
+          variants={staggerItem}
+          className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3"
+        >
+          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-red-700">{errors.submit}</p>
+        </motion.div>
+      )}
+
       <div className="grid sm:grid-cols-2 gap-6">
         <motion.div variants={staggerItem}>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
@@ -115,7 +139,7 @@ export default function ContactForm() {
               'w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-amber-200 outline-none transition-all',
               errors.name ? 'border-red-500' : 'border-gray-200 focus:border-amber-500'
             )}
-            placeholder="John Doe"
+            placeholder="Your Full Name"
           />
           {errors.name && (
             <p className="mt-1 text-sm text-red-500 flex items-center space-x-1">
@@ -139,7 +163,7 @@ export default function ContactForm() {
               'w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-amber-200 outline-none transition-all',
               errors.email ? 'border-red-500' : 'border-gray-200 focus:border-amber-500'
             )}
-            placeholder="john@example.com"
+            placeholder="Your Email Address"
           />
           {errors.email && (
             <p className="mt-1 text-sm text-red-500 flex items-center space-x-1">
@@ -162,7 +186,7 @@ export default function ContactForm() {
             value={formData.phone}
             onChange={handleChange}
             className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none transition-all"
-            placeholder="(212) 555-0100"
+            placeholder="0337 3594376"
           />
         </motion.div>
 
