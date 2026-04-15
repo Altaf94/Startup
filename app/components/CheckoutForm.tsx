@@ -14,7 +14,9 @@ import {
   ArrowRight,
   ArrowLeft,
   ShoppingBag,
-  AlertCircle
+  AlertCircle,
+  MapPin,
+  Loader
 } from 'lucide-react';
 import { useCart } from '@/app/lib/cart-context';
 import { useLocation } from '@/app/lib/location-context';
@@ -33,6 +35,7 @@ export default function CheckoutForm() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('credit_card');
   const [orderId, setOrderId] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isLocatingUser, setIsLocatingUser] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
   const [customer, setCustomer] = useState<CustomerDetails>({
@@ -96,6 +99,64 @@ export default function CheckoutForm() {
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
+  };
+
+  const handleUseCurrentLocation = async () => {
+    setIsLocatingUser(true);
+    setErrors(prev => ({ ...prev, location: '' }));
+
+    if (!navigator.geolocation) {
+      setErrors(prev => ({ ...prev, location: 'Geolocation is not supported by your browser' }));
+      setIsLocatingUser(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        try {
+          // Use reverse geocoding to get address (using OpenStreetMap Nominatim API - free tier)
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            const address = data.address;
+            
+            setCustomer(prev => ({
+              ...prev,
+              address: data.name || 'Current Location',
+              city: address?.city || address?.town || address?.village || 'Karachi',
+              zipCode: address?.postcode || '75500',
+            }));
+          } else {
+            setErrors(prev => ({ ...prev, location: 'Could not retrieve address from location' }));
+          }
+        } catch (error) {
+          console.error('Geolocation error:', error);
+          setErrors(prev => ({ ...prev, location: 'Failed to fetch address from location' }));
+        }
+        
+        setIsLocatingUser(false);
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        let errorMessage = 'Unable to access your location';
+        
+        if (error.code === error.PERMISSION_DENIED) {
+          errorMessage = 'Permission denied. Please enable location access';
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          errorMessage = 'Location information is unavailable';
+        } else if (error.code === error.TIMEOUT) {
+          errorMessage = 'Location request timed out';
+        }
+        
+        setErrors(prev => ({ ...prev, location: errorMessage }));
+        setIsLocatingUser(false);
+      }
+    );
   };
 
   if (items.length === 0 && step !== 'confirmation') {
@@ -249,6 +310,38 @@ export default function CheckoutForm() {
               {/* Delivery Address */}
               <motion.div variants={staggerItem} className="mb-8">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">Delivery Address</h3>
+                
+                {errors.location && (
+                  <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start space-x-2">
+                    <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-amber-700">{errors.location}</p>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleUseCurrentLocation}
+                  disabled={isLocatingUser}
+                  className={cn(
+                    'mb-4 w-full flex items-center justify-center space-x-2 px-4 py-3 rounded-lg font-semibold transition-all',
+                    isLocatingUser
+                      ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                      : 'bg-blue-500 hover:bg-blue-600 text-white'
+                  )}
+                >
+                  {isLocatingUser ? (
+                    <>
+                      <Loader className="w-5 h-5 animate-spin" />
+                      <span>Detecting Location...</span>
+                    </>
+                  ) : (
+                    <>
+                      <MapPin className="w-5 h-5" />
+                      <span>Use Current Location</span>
+                    </>
+                  )}
+                </button>
+
                 <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -259,6 +352,7 @@ export default function CheckoutForm() {
                         name="address"
                         value={customer.address}
                         onChange={handleInputChange}
+                        placeholder="Auto-filled from location or manually enter"
                         className={cn(
                           'w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-amber-200 outline-none transition-all',
                           errors.address ? 'border-red-500' : 'border-gray-200 focus:border-amber-500'
