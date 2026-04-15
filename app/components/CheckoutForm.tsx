@@ -345,16 +345,16 @@ export default function CheckoutForm() {
                 <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Street Address *
+                        Street Address * (Use geolocation button above to fill)
                       </label>
                       <input
                         type="text"
                         name="address"
                         value={customer.address}
-                        onChange={handleInputChange}
-                        placeholder="Auto-filled from location or manually enter"
+                        readOnly
+                        placeholder="Click 'Use Current Location' button above"
                         className={cn(
-                          'w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-amber-200 outline-none transition-all',
+                          'w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-amber-200 outline-none transition-all bg-gray-50 cursor-not-allowed',
                           errors.address ? 'border-red-500' : 'border-gray-200 focus:border-amber-500'
                         )}
                       />
@@ -365,15 +365,15 @@ export default function CheckoutForm() {
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          City *
+                          City * (Auto-filled)
                         </label>
                         <input
                           type="text"
                           name="city"
                           value={customer.city}
-                          onChange={handleInputChange}
+                          readOnly
                           className={cn(
-                            'w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-amber-200 outline-none transition-all',
+                            'w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-amber-200 outline-none transition-all bg-gray-50 cursor-not-allowed',
                             errors.city ? 'border-red-500' : 'border-gray-200 focus:border-amber-500'
                           )}
                         />
@@ -383,15 +383,15 @@ export default function CheckoutForm() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          ZIP Code *
+                          ZIP Code * (Auto-filled)
                         </label>
                         <input
                           type="text"
                           name="zipCode"
                           value={customer.zipCode}
-                          onChange={handleInputChange}
+                          readOnly
                           className={cn(
-                            'w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-amber-200 outline-none transition-all',
+                            'w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-amber-200 outline-none transition-all bg-gray-50 cursor-not-allowed',
                             errors.zipCode ? 'border-red-500' : 'border-gray-200 focus:border-amber-500'
                           )}
                         />
