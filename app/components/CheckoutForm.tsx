@@ -20,15 +20,14 @@ import { useLocation } from '@/app/lib/location-context';
 import { formatPrice, cn, isValidEmail, isValidPhone, generateWhatsAppLink } from '@/app/lib/utils';
 import { generateOrderId } from '@/app/data/orders';
 import { fadeInUp, staggerContainer, staggerItem } from '@/app/lib/animations';
-import type { DeliveryType, PaymentMethod, CustomerDetails } from '@/app/types';
+import type { PaymentMethod, CustomerDetails } from '@/app/types';
 
 type CheckoutStep = 'details' | 'payment' | 'confirmation';
 
 export default function CheckoutForm() {
   const { items, subtotal, deliveryFee, total, clearCart } = useCart();
-  const { orderType, selectedLocation } = useLocation();
+  const { selectedLocation } = useLocation();
   const [step, setStep] = useState<CheckoutStep>('details');
-  const [deliveryType, setDeliveryType] = useState<DeliveryType>('delivery');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod');
   const [orderId, setOrderId] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -491,10 +490,8 @@ export default function CheckoutForm() {
                 <div className="flex justify-between text-gray-600">
                   <span>Delivery</span>
                   <span>
-                    {deliveryFee === 0 && orderType === 'delivery' ? (
+                    {deliveryFee === 0 ? (
                       <span className="text-gray-400 text-xs">Set address</span>
-                    ) : deliveryFee === 0 && orderType === 'pickup' ? (
-                      <span className="text-green-600 font-semibold">Free</span>
                     ) : (
                       formatPrice(deliveryFee)
                     )}

@@ -25,7 +25,7 @@ export default function Home() {
       <AboutPreview />
       
       {/* Category Cards - Browse by category */}
-      <OffersPreview />
+      {/* <OffersPreview /> */}
       
       {/* Testimonials - Customer reviews */}
       {/* <Testimonials /> */}

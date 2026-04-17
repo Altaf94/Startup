@@ -12,10 +12,13 @@ export default function CTASection() {
       {/* Background */}
       <div className="absolute inset-0">
         <Image
-          src="https://images.unsplash.com/photo-1595295333158-4742f28fbd85?w=1920&q=80"
+          src="https://images.unsplash.com/photo-1595295333158-4742f28fbd85?w=1920&q=80&fm=webp"
           alt="Delicious Italian food"
           fill
+          sizes="100vw"
           className="object-cover"
+          loading="lazy"
+          quality={85}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-amber-600/95 via-amber-600/90 to-orange-600/95" />
       </div>

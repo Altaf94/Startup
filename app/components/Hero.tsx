@@ -12,11 +12,13 @@ export default function Hero() {
       {/* Background Image with Overlay */}
       <div className="absolute inset-0">
         <Image
-          src="https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=1920&q=80"
+          src="https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=1920&q=80&fm=webp"
           alt="Delicious Italian pasta"
           fill
+          sizes="100vw"
           className="object-cover"
           priority
+          quality={85}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
@@ -51,7 +53,7 @@ export default function Hero() {
           >
             <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
             <span className="text-amber-200 text-sm font-medium">
-              Rated #1 Italian Restaurant in Karachi
+              Italian Restaurant in Karachi
             </span>
           </motion.div>
 

@@ -13,10 +13,10 @@ import { staggerContainer, staggerItem } from '@/app/lib/animations';
 
 export default function CartPage() {
   const { items, updateQuantity, removeItem, subtotal, deliveryFee, total, itemCount } = useCart();
-  const { selectedLocation, orderType } = useLocation();
+  const { selectedLocation } = useLocation();
   const router = useRouter();
   
-  const isAddressSet = orderType === 'pickup' || (orderType === 'delivery' && selectedLocation);
+  const isAddressSet = selectedLocation;
 
   if (items.length === 0) {
     return (
@@ -76,6 +76,8 @@ export default function CartPage() {
                         alt={item.name}
                         fill
                         className="object-cover"
+                        loading="lazy"
+                        quality={75}
                       />
                     </div>
 
@@ -147,10 +149,8 @@ export default function CartPage() {
                 <div className="flex justify-between text-gray-600">
                   <span>Delivery Fee</span>
                   <span>
-                    {deliveryFee === 0 && orderType === 'delivery' ? (
+                    {deliveryFee === 0 ? (
                       <span className="text-gray-400 text-xs">Enter address to proceed</span>
-                    ) : deliveryFee === 0 && orderType === 'pickup' ? (
-                      <span className="text-green-600 font-semibold">Free</span>
                     ) : (
                       formatPrice(deliveryFee)
                     )}

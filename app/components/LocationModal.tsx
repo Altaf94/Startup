@@ -2,11 +2,8 @@
 
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Navigation, Loader2, MapPin, Check } from 'lucide-react';
-import { useLocation, OrderType } from '@/app/lib/location-context';
-import { useCart } from '@/app/lib/cart-context';
-import { branchLocations } from '@/app/data/locations';
-import { cn } from '@/app/lib/utils';
+import { Navigation, Loader2, MapPin } from 'lucide-react';
+import { useLocation } from '@/app/lib/location-context';
 
 async function reverseGeocode(lat: number, lng: number): Promise<string> {
   const res = await fetch(
@@ -24,8 +21,7 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
 }
 
 export default function LocationModal() {
-  const { isModalOpen, confirmLocation, closeModal, orderType, setOrderType, selectedLocation, setSelectedLocation, setLocationWithCoords } = useLocation();
-  const { setDeliveryFee } = useCart();
+  const { isModalOpen, confirmLocation, closeModal, selectedLocation, setSelectedLocation, setLocationWithCoords } = useLocation();
   const [locating, setLocating] = useState(false);
   const [locError, setLocError] = useState('');
 
@@ -40,21 +36,8 @@ export default function LocationModal() {
       async (pos) => {
         const { latitude, longitude } = pos.coords;
         try {
-          if (orderType === 'delivery') {
-            const address = await reverseGeocode(latitude, longitude);
-            setLocationWithCoords(address, { lat: latitude, lng: longitude });
-          } else {
-            // For pickup: find nearest branch
-            const nearest = branchLocations.reduce((prev, curr) => {
-              const dist = (lat: number, lng: number) =>
-                Math.sqrt((lat - latitude) ** 2 + (lng - longitude) ** 2);
-              return dist(curr.coordinates.lat, curr.coordinates.lng) <
-                dist(prev.coordinates.lat, prev.coordinates.lng)
-                ? curr
-                : prev;
-            });
-            setSelectedLocation(nearest.name);
-          }
+          const address = await reverseGeocode(latitude, longitude);
+          setLocationWithCoords(address, { lat: latitude, lng: longitude });
         } catch {
           setLocError('Could not resolve your address. Please try again.');
         }
@@ -77,13 +60,6 @@ export default function LocationModal() {
   // Handle confirm
   const handleSelect = async () => {
     if (!selectedLocation) return;
-    if (orderType === 'delivery') {
-      // Only geocode if we have the coordinates already (from GPS)
-      if (selectedLocation && !navigator.geolocation) {
-        confirmLocation();
-        return;
-      }
-    }
     confirmLocation();
   };
 
@@ -111,34 +87,11 @@ export default function LocationModal() {
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
               {/* Header */}
               <div className="p-5 border-b border-gray-100">
-                <h2 className="text-xl font-bold text-gray-900">Select your order type</h2>
+                <h2 className="text-xl font-bold text-gray-900">Enter your delivery address</h2>
               </div>
 
               <div className="p-6 space-y-5">
-                {/* Delivery / Pickup Toggle */}
-                <div className="flex bg-gray-100 rounded-full p-1">
-                  {(['delivery', 'pickup'] as OrderType[]).map((type) => (
-                    <button
-                      key={type}
-                      onClick={() => { 
-                        setOrderType(type); 
-                        setSelectedLocation(''); 
-                        setLocError('');
-                        if (type === 'pickup') {
-                          setDeliveryFee(0);
-                        }
-                      }}
-                      className={cn(
-                        'flex-1 py-2 rounded-full text-sm font-semibold uppercase tracking-wide transition-all',
-                        orderType === type
-                          ? 'bg-amber-500 text-white shadow'
-                          : 'text-gray-500 hover:text-gray-700'
-                      )}
-                    >
-                      {type === 'delivery' ? 'Delivery' : 'Pick-Up'}
-                    </button>
-                  ))}
-                </div>
+
 
                 {/* Location Section */}
                 <div className="space-y-3">
@@ -157,49 +110,16 @@ export default function LocationModal() {
                   )}
 
                   {/* Delivery: show detected address (read-only) */}
-                  {orderType === 'delivery' && (
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <input
-                        type="text"
-                        readOnly
-                        placeholder="Click 'Use Current Location' to detect your address"
-                        value={selectedLocation}
-                        className="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-xl text-gray-900 bg-gray-50 cursor-not-allowed outline-none text-sm"
-                      />
-                    </div>
-                  )}
-
-                  {/* Pickup: branch cards */}
-                  {orderType === 'pickup' && (
-                    <div className="space-y-2">
-                      {branchLocations.map((loc) => {
-                        const isSelected = selectedLocation === loc.name;
-                        return (
-                          <button
-                            key={loc.id}
-                            onClick={() => setSelectedLocation(loc.name)}
-                            className={cn(
-                              'w-full text-left flex items-start gap-3 p-4 rounded-xl border-2 transition-all',
-                              isSelected
-                                ? 'border-amber-500 bg-amber-50'
-                                : 'border-gray-100 hover:border-amber-200 hover:bg-gray-50'
-                            )}
-                          >
-                            <MapPin className={cn('w-5 h-5 mt-0.5 flex-shrink-0', isSelected ? 'text-amber-500' : 'text-gray-400')} />
-                            <div className="flex-1 min-w-0">
-                              <p className={cn('font-semibold text-sm', isSelected ? 'text-amber-700' : 'text-gray-800')}>
-                                {loc.name}
-                              </p>
-                              <p className="text-xs text-gray-500 mt-0.5">{loc.address}</p>
-                              <p className="text-xs text-gray-400 mt-0.5">{loc.hours}</p>
-                            </div>
-                            {isSelected && <Check className="w-5 h-5 text-amber-500 flex-shrink-0" />}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      readOnly
+                      placeholder="Click 'Use Current Location' to detect your address"
+                      value={selectedLocation}
+                      className="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-xl text-gray-900 bg-gray-50 cursor-not-allowed outline-none text-sm"
+                    />
+                  </div>
                 </div>
 
                 {/* Divider */}

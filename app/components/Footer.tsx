@@ -17,11 +17,12 @@ const footerLinks = {
     { href: '/menu', label: 'Menu' },
     { href: '/about', label: 'About Us' },
     { href: '/order', label: 'Order Online' },
+      { href: '/offers', label: 'Make Your Own Bowl' },
     { href: '/tracking', label: 'Track Order' },
     { href: '/contact', label: 'Contact' },
+   
   ],
   legal: [
-    { href: '/offers', label: 'Make Your Own Bowl' },
     { href: '/faq', label: 'FAQ' },
     { href: '/privacy', label: 'Privacy Policy' },
     { href: '/terms', label: 'Terms of Service' },

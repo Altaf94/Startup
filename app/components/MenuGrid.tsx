@@ -107,11 +107,11 @@ export default function MenuGrid({ initialCategory }: MenuGridProps) {
                 <Image
                   src={item.image}
                   alt={item.name}
-                   width={item.imageWidth }
-  height={item.imageHeight }
-                  
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   className="object-cover group-hover:scale-110 transition-transform duration-500"
+                  loading="lazy"
+                  quality={80}
                 />
                 {/* Badges */}
                 <div className="absolute top-4 left-4 flex flex-wrap gap-2">

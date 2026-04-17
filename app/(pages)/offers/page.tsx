@@ -41,10 +41,13 @@ export default function OffersPage() {
               {/* Image */}
               <div className="relative h-56">
                 <Image
-                  src={offer.image}
+                  src={offer.image.includes('unsplash') ? offer.image + '&fm=webp' : offer.image}
                   alt={offer.title}
                   fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
+                  loading="lazy"
+                  quality={80}
                 />
                 <div className="absolute top-4 left-4 bg-amber-500 text-white font-bold px-4 py-2 rounded-full">
                   {offer.discount}

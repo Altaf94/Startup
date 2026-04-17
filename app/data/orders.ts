@@ -85,7 +85,7 @@ export const sampleOrders: Order[] = [
       email: 'emily.j@email.com',
       phone: '(718) 555-5678',
     },
-    deliveryType: 'pickup',
+    deliveryType: 'delivery',
     paymentMethod: 'debit_card',
     status: 'delivered',
     timeline: [

@@ -58,10 +58,13 @@ export default function CategoryCards() {
               >
                 {/* Background Image */}
                 <Image
-                  src={category.image}
+                  src={category.image.includes('unsplash') ? category.image + '&fm=webp' : category.image}
                   alt={category.name}
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  loading="lazy"
+                  quality={80}
                 />
                 {/* Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />

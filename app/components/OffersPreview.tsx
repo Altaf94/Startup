@@ -59,10 +59,13 @@ export default function OffersPreview() {
               {/* Image */}
               <div className="relative h-48 overflow-hidden">
                 <Image
-                  src={offer.image}
+                  src={offer.image.includes('unsplash') ? offer.image + '&fm=webp' : offer.image}
                   alt={offer.title}
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 50vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                  quality={80}
                 />
                 <div className="absolute top-4 left-4 bg-amber-500 text-white font-bold px-4 py-2 rounded-full text-sm">
                   {offer.discount}

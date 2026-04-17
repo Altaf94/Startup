@@ -45,7 +45,7 @@ export type OrderStatus =
   | 'delivered' 
   | 'cancelled';
 
-export type DeliveryType = 'delivery' | 'pickup';
+export type DeliveryType = 'delivery';
 
 export type PaymentMethod = 
   | 'credit_card' 

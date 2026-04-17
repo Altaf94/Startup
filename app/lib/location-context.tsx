@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useCart } from './cart-context';
 
-export type OrderType = 'delivery' | 'pickup';
+export type OrderType = 'delivery';
 
 const RESTAURANT_LAT = 24.9215;
 const RESTAURANT_LNG = 67.1114;
@@ -60,9 +60,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   };
 
   const confirmLocation = () => {
-    if (orderType === 'pickup') {
-      setDeliveryFee(0);
-    } else if (userCoords) {
+    if (userCoords) {
       const distKm = calcDistanceKm(userCoords.lat, userCoords.lng, RESTAURANT_LAT, RESTAURANT_LNG);
       const fee = Math.max(Math.round(distKm * RATE_PER_KM), MIN_DELIVERY_FEE);
       setDeliveryFee(fee);

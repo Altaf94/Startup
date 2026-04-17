@@ -85,12 +85,14 @@ export default function Testimonials() {
 
               {/* Author */}
               <div className="flex items-center space-x-3">
-                <div className="relative w-12 h-12 rounded-full overflow-hidden">
+                <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
                   <Image
-                    src={testimonial.avatar}
+                    src={testimonial.avatar.includes('unsplash') ? testimonial.avatar + '&fm=webp' : testimonial.avatar}
                     alt={testimonial.name}
                     fill
                     className="object-cover"
+                    loading="lazy"
+                    quality={75}
                   />
                 </div>
                 <div>
