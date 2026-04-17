@@ -21,8 +21,8 @@ export default function CartDrawer() {
     total,
     itemCount,
   } = useCart();
-  const { orderType, selectedLocation } = useLocation();
-  const isAddressSet = orderType === 'pickup' || (orderType === 'delivery' && selectedLocation);
+  const { selectedLocation } = useLocation();
+  const isAddressSet = !!selectedLocation;
 
   return (
     <AnimatePresence>
@@ -169,10 +169,8 @@ export default function CartDrawer() {
                   <div className="flex justify-between text-gray-600">
                     <span>Delivery</span>
                     <span>
-                      {deliveryFee === 0 && orderType === 'delivery' ? (
+                      {deliveryFee === 0 ? (
                         <span className="text-gray-400 text-xs">Enter address to proceed</span>
-                      ) : deliveryFee === 0 && orderType === 'pickup' ? (
-                        <span className="text-green-600 font-semibold">Free</span>
                       ) : (
                         formatPrice(deliveryFee)
                       )}
