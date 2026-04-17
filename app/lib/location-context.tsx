@@ -45,37 +45,46 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // Only open modal after hydration and only on first visit
+  // Always open modal on every page load; restore saved values so user can confirm instantly
   useEffect(() => {
     setIsHydrated(true);
-    // Check if location was already set
     const savedLocation = localStorage.getItem('the-saucy-pan-location');
-    if (savedLocation) {
-      setSelectedLocationState(savedLocation);
-    } else {
-      // Delay modal open to after hydration completes
-      setTimeout(() => setIsModalOpen(true), 500);
+    const savedCoords = localStorage.getItem('the-saucy-pan-coords');
+    if (savedLocation && savedCoords) {
+      try {
+        const coords = JSON.parse(savedCoords) as { lat: number; lng: number };
+        setSelectedLocationState(savedLocation);
+        setUserCoords(coords);
+        // Restore delivery fee from saved coords
+        const distKm = calcDistanceKm(coords.lat, coords.lng, RESTAURANT_LAT, RESTAURANT_LNG);
+        const fee = Math.max(Math.round(distKm * RATE_PER_KM), MIN_DELIVERY_FEE);
+        setDeliveryFee(fee);
+      } catch { /* ignore bad JSON */ }
     }
+    // Always show modal regardless
+    setTimeout(() => setIsModalOpen(true), 300);
   }, []);
 
   const setSelectedLocation = (location: string) => {
     setSelectedLocationState(location);
     setUserCoords(null); // clear coords when manually typed
     localStorage.setItem('the-saucy-pan-location', location);
+    localStorage.removeItem('the-saucy-pan-coords');
   };
 
   const setLocationWithCoords = (location: string, coords: { lat: number; lng: number }) => {
     setSelectedLocationState(location);
     setUserCoords(coords);
     localStorage.setItem('the-saucy-pan-location', location);
+    localStorage.setItem('the-saucy-pan-coords', JSON.stringify(coords));
   };
 
   const confirmLocation = () => {
-    if (userCoords) {
-      const distKm = calcDistanceKm(userCoords.lat, userCoords.lng, RESTAURANT_LAT, RESTAURANT_LNG);
-      const fee = Math.max(Math.round(distKm * RATE_PER_KM), MIN_DELIVERY_FEE);
-      setDeliveryFee(fee);
-    }
+    // Only allow confirming if we have coords (delivery fee can be calculated)
+    if (!userCoords) return;
+    const distKm = calcDistanceKm(userCoords.lat, userCoords.lng, RESTAURANT_LAT, RESTAURANT_LNG);
+    const fee = Math.max(Math.round(distKm * RATE_PER_KM), MIN_DELIVERY_FEE);
+    setDeliveryFee(fee);
     setIsModalOpen(false);
   };
 

@@ -257,7 +257,7 @@ export default function CheckoutForm() {
                         name="address"
                         value={customer.address}
                         onChange={handleInputChange}
-                        placeholder="Enter your delivery address"
+                        placeholder="Please select your location"
                         className={cn(
                           'w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-amber-200 outline-none transition-all',
                           errors.address ? 'border-red-500' : 'border-gray-200 focus:border-amber-500'
