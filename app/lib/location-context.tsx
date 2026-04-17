@@ -1,25 +1,36 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { getDistance } from 'geolib';
 import { useCart } from './cart-context';
 
 export type OrderType = 'delivery';
 
-const RESTAURANT_LAT = 24.9215;
-const RESTAURANT_LNG = 67.1114;
-const RATE_PER_KM = 30;
-const MIN_DELIVERY_FEE = 50;
+// Exact restaurant coordinates - Gulshan-e-Iqbal Block 14
+const RESTAURANT = {
+  latitude: 24.9198,
+  longitude: 67.1123
+};
 
-function calcDistanceKm(lat1: number, lng1: number, lat2: number, lng2: number) {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLng = ((lng2 - lng1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+// Zone-based pricing aligned with Karachi road distances
+// From Gulshan-e-Iqbal Block 14 restaurant
+export function getDeliveryFee(distanceKm: number): number | null {
+  if (distanceKm <= 3) return 150;
+  if (distanceKm <= 6) return 200;
+  if (distanceKm <= 9) return 300;
+  if (distanceKm <= 13) return 350;
+  if (distanceKm <= 20) return 450;
+  return null; // out of delivery range
+}
+
+// Check if coordinates are in delivery range
+export function isInDeliveryRange(coords: { lat: number; lng: number }): boolean {
+  const distanceMeters = getDistance(
+    { latitude: coords.lat, longitude: coords.lng },
+    RESTAURANT
+  );
+  const distKm = distanceMeters / 1000;
+  return getDeliveryFee(distKm) !== null;
 }
 
 interface LocationContextType {
@@ -55,10 +66,14 @@ export function LocationProvider({ children }: { children: ReactNode }) {
         const coords = JSON.parse(savedCoords) as { lat: number; lng: number };
         setSelectedLocationState(savedLocation);
         setUserCoords(coords);
-        // Restore delivery fee from saved coords
-        const distKm = calcDistanceKm(coords.lat, coords.lng, RESTAURANT_LAT, RESTAURANT_LNG);
-        const fee = Math.max(Math.round(distKm * RATE_PER_KM), MIN_DELIVERY_FEE);
-        setDeliveryFee(fee);
+        // Restore delivery fee from saved coords using zone pricing
+        const distanceMeters = getDistance(
+          { latitude: coords.lat, longitude: coords.lng },
+          RESTAURANT
+        );
+        const distKm = distanceMeters / 1000;
+        const fee = getDeliveryFee(distKm);
+        if (fee !== null) setDeliveryFee(fee);
       } catch { /* ignore bad JSON */ }
     }
     // Always show modal regardless
@@ -82,8 +97,16 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   const confirmLocation = () => {
     // Only allow confirming if we have coords (delivery fee can be calculated)
     if (!userCoords) return;
-    const distKm = calcDistanceKm(userCoords.lat, userCoords.lng, RESTAURANT_LAT, RESTAURANT_LNG);
-    const fee = Math.max(Math.round(distKm * RATE_PER_KM), MIN_DELIVERY_FEE);
+    const distanceMeters = getDistance(
+      { latitude: userCoords.lat, longitude: userCoords.lng },
+      RESTAURANT
+    );
+    const distKm = distanceMeters / 1000;
+    const fee = getDeliveryFee(distKm);
+    if (fee === null) {
+      // Out of delivery range - don't close modal
+      return;
+    }
     setDeliveryFee(fee);
     setIsModalOpen(false);
   };

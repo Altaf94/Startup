@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Navigation, Loader2, MapPin, ChevronDown } from 'lucide-react';
-import { useLocation } from '@/app/lib/location-context';
+import { Navigation, Loader2, MapPin, ChevronDown, AlertCircle } from 'lucide-react';
+import { useLocation, isInDeliveryRange } from '@/app/lib/location-context';
 import { karachiAreas } from '@/app/data/karachi-areas';
 
 async function reverseGeocode(lat: number, lng: number): Promise<string> {
@@ -33,6 +33,9 @@ export default function LocationModal() {
   const [locError, setLocError] = useState('');
   const [inputMethod, setInputMethod] = useState<'gps' | 'dropdown'>('gps');
   const [selectedArea, setSelectedArea] = useState('');
+
+  // Check if current coords are out of delivery range
+  const outOfRange = userCoords ? !isInDeliveryRange(userCoords) : false;
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -158,7 +161,7 @@ export default function LocationModal() {
                       <p className="text-xs text-red-500 text-center">{locError}</p>
                     )}
 
-                    {selectedLocation && userCoords && (
+                    {selectedLocation && userCoords && !outOfRange && (
                       <div className="flex items-start gap-2 p-3 bg-green-50 border border-green-200 rounded-xl">
                         <MapPin className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
                         <p className="text-sm text-green-800 font-medium">{selectedLocation}</p>
@@ -187,12 +190,23 @@ export default function LocationModal() {
                       </select>
                     </div>
 
-                    {selectedLocation && userCoords && (
+                    {selectedLocation && userCoords && !outOfRange && (
                       <div className="flex items-start gap-2 p-3 bg-green-50 border border-green-200 rounded-xl">
                         <MapPin className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
                         <p className="text-sm text-green-800 font-medium">{selectedLocation}</p>
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* Out of range error */}
+                {outOfRange && (
+                  <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
+                    <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm text-red-800 font-medium">Sorry, we don&apos;t deliver to this area yet</p>
+                      <p className="text-xs text-red-600 mt-1">This location is outside our delivery range (~15km). Please select a closer area.</p>
+                    </div>
                   </div>
                 )}
 
@@ -202,10 +216,10 @@ export default function LocationModal() {
                 {/* Confirm Button */}
                 <button
                   onClick={handleConfirm}
-                  disabled={!selectedLocation || !userCoords}
+                  disabled={!selectedLocation || !userCoords || outOfRange}
                   className="w-full py-4 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-200 disabled:cursor-not-allowed text-white disabled:text-gray-400 font-semibold rounded-xl transition-colors"
                 >
-                  {!userCoords ? 'Detect or select your area first' : 'Confirm Location'}
+                  {!userCoords ? 'Detect or select your area first' : outOfRange ? 'Outside Delivery Range' : 'Confirm Location'}
                 </button>
               </div>
             </div>
