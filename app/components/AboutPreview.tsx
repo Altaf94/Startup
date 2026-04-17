@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { ChefHat, Zap, Heart, Star, Award } from 'lucide-react';
 import { fadeInUp, staggerContainer, staggerItem } from '@/app/lib/animations';
 
@@ -43,10 +44,14 @@ export default function AboutPreview() {
         {/* Timeline */}
        
           <div className="max-w-2xl mx-auto ">
-            <img
+            <Image
               src="/images/Timeline.png"
               alt="Pasta Making Timeline"
-              className="mx-auto block"
+              width={800}
+              height={600}
+              loading="lazy"
+              quality={85}
+              className="mx-auto block w-full h-auto"
             />
           </div>
 

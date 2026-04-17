@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ShoppingBag, Phone, MapPin } from 'lucide-react';
 import { useCart } from '@/app/lib/cart-context';
@@ -53,15 +54,21 @@ export default function Header() {
                 )}
                 style={{ lineHeight: 0 }}
               >
-                <img
-                  src="/images/logo.png"
-                  alt="The Saucy Pan Logo"
-                  className={cn(
-                    'h-16 w-auto md:h-24 transition-all duration-300',
-                    isScrolled ? 'drop-shadow-none' : 'drop-shadow-lg'
-                  )}
-                  style={{ maxWidth: '260px' }}
-                />
+                <div className="relative h-16 md:h-24 w-auto flex items-center">
+                  <Image
+                    src="/images/logo.png"
+                    alt="The Saucy Pan Logo"
+                    width={260}
+                    height={96}
+                    priority
+                    loading="eager"
+                    quality={90}
+                    className={cn(
+                      'h-16 md:h-24 w-auto transition-all duration-300',
+                      isScrolled ? 'drop-shadow-none' : 'drop-shadow-lg'
+                    )}
+                  />
+                </div>
               </span>
               <span className="sr-only">The Saucy Pan</span>
             </Link>
