@@ -19,20 +19,18 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "The Saucy Pan | Authentic Italian Cloud Kitchen Karachi",
+    default: "The Saucy Pan | Authentic Italian Pasta",
     template: "%s | The Saucy Pan",
   },
   description:
-    "Experience authentic Italian cuisine from The Saucy Pan cloud kitchen. Fresh handmade pasta, traditional recipes, delivered fresh to your door. Order online for delivery or pickup.",
+    "Experience authentic Italian cuisine from The Saucy Pan. Fresh handmade pasta, traditional recipes, delivered fresh to your door. Order online for delivery or pickup.",
   keywords: [
-    "Italian cloud kitchen",
     "pasta delivery",
     "Karachi Italian food",
     "authentic Italian",
     "handmade pasta",
     "Italian food delivery",
     "best pasta Karachi",
-    "cloud kitchen Karachi",
   ],
   authors: [{ name: "The Saucy Pan" }],
   creator: "The Saucy Pan",
@@ -51,23 +49,23 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://thesaucypan.com",
     siteName: "The Saucy Pan",
-    title: "The Saucy Pan | Authentic Italian Cloud Kitchen Karachi",
+    title: "The Saucy Pan | Authentic Italian Pasta",
     description:
-      "Experience authentic Italian cuisine from The Saucy Pan cloud kitchen. Fresh handmade pasta, traditional recipes, delivered fresh to your door.",
+      "Experience authentic Italian cuisine from The Saucy Pan. Fresh handmade pasta, traditional recipes, delivered fresh to your door.",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "The Saucy Pan - Authentic Italian Cloud Kitchen",
+        alt: "The Saucy Pan - Authentic Italian Pasta",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "The Saucy Pan | Authentic Italian Cloud Kitchen Karachi",
+    title: "The Saucy Pan | Authentic Italian Pasta",
     description:
-      "Experience authentic Italian cuisine from The Saucy Pan cloud kitchen. Fresh handmade pasta, traditional recipes, delivered fresh to your door.",
+      "Experience authentic Italian cuisine from The Saucy Pan. Fresh handmade pasta, traditional recipes, delivered fresh to your door.",
     images: ["/og-image.jpg"],
     creator: "@thesaucypan",
   },
