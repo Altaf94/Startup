@@ -98,7 +98,7 @@ export const menuItems: MenuItem[] = [
     name: 'Spinach & Cheese Ravioli in Creamy Mushroom Pesto',
     description: 'Soft ravioli filled with spinach and cheese, tossed in a creamy mushroom pesto sauce. Earthy, rich, and luxuriously smooth.',
     price: 1300,
-    image: '/images/Spinach%20%26%20Cheese%20Ravioli%20in%20Creamy%20Mushroom%20Pesto.png',
+    image: '/images/Spinach & Cheese Ravioli in Creamy Mushroom Pesto.png',
     category: 'ravioli',
     
   },
