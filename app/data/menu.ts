@@ -90,7 +90,7 @@ export const menuItems: MenuItem[] = [
     name: 'Aglio Olio Spaghetti with Crispy Ravioli Bites',
     description: 'Classic garlic and olive oil spaghetti paired with golden crispy fried mushroom cheese ravioli bites. A fusion of simplicity and indulgent crunch.',
     price: 1200,
-    image: '/images/aglio-olio-spaghetti-ravioli-bites.jpg',
+    image: '/images/aglio-olio-spaghetti-ravioli-bites.png',
     category: 'classic-pasta',
   },
   {
