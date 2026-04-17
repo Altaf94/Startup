@@ -156,19 +156,16 @@ export default function LocationModal() {
                     <p className="text-xs text-red-500 text-center">{locError}</p>
                   )}
 
-                  {/* Delivery: manual address input */}
+                  {/* Delivery: show detected address (read-only) */}
                   {orderType === 'delivery' && (
                     <div className="relative">
                       <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <input
                         type="text"
-                        placeholder="Or type your delivery address (e.g., Qamar Abbas)"
+                        readOnly
+                        placeholder="Click 'Use Current Location' to detect your address"
                         value={selectedLocation}
-                        onChange={(e) => {
-                          setSelectedLocation(e.target.value);
-                          if (locError) setLocError('');
-                        }}
-                        className="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-xl text-gray-900 bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none transition-all text-sm"
+                        className="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-xl text-gray-900 bg-gray-50 cursor-not-allowed outline-none text-sm"
                       />
                     </div>
                   )}

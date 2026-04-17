@@ -6,7 +6,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { 
   CreditCard, 
-  Wallet, 
   Banknote, 
   Truck, 
   Store,
@@ -14,9 +13,7 @@ import {
   ArrowRight,
   ArrowLeft,
   ShoppingBag,
-  AlertCircle,
-  MapPin,
-  Loader
+  AlertCircle
 } from 'lucide-react';
 import { useCart } from '@/app/lib/cart-context';
 import { useLocation } from '@/app/lib/location-context';
@@ -32,10 +29,9 @@ export default function CheckoutForm() {
   const { orderType, selectedLocation } = useLocation();
   const [step, setStep] = useState<CheckoutStep>('details');
   const [deliveryType, setDeliveryType] = useState<DeliveryType>('delivery');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('credit_card');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod');
   const [orderId, setOrderId] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isLocatingUser, setIsLocatingUser] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
   const [customer, setCustomer] = useState<CustomerDetails>({
@@ -54,9 +50,7 @@ export default function CheckoutForm() {
 
     if (!customer.firstName.trim()) newErrors.firstName = 'First name is required';
     if (!customer.lastName.trim()) newErrors.lastName = 'Last name is required';
-    if (!customer.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!isValidEmail(customer.email)) {
+    if (customer.email.trim() && !isValidEmail(customer.email)) {
       newErrors.email = 'Please enter a valid email';
     }
     if (!customer.phone.trim()) {
@@ -99,64 +93,6 @@ export default function CheckoutForm() {
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
-  };
-
-  const handleUseCurrentLocation = async () => {
-    setIsLocatingUser(true);
-    setErrors(prev => ({ ...prev, location: '' }));
-
-    if (!navigator.geolocation) {
-      setErrors(prev => ({ ...prev, location: 'Geolocation is not supported by your browser' }));
-      setIsLocatingUser(false);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-        
-        try {
-          // Use reverse geocoding to get address (using OpenStreetMap Nominatim API - free tier)
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-          );
-          
-          if (response.ok) {
-            const data = await response.json();
-            const address = data.address;
-            
-            setCustomer(prev => ({
-              ...prev,
-              address: data.name || 'Current Location',
-              city: address?.city || address?.town || address?.village || 'Karachi',
-              zipCode: address?.postcode || '75500',
-            }));
-          } else {
-            setErrors(prev => ({ ...prev, location: 'Could not retrieve address from location' }));
-          }
-        } catch (error) {
-          console.error('Geolocation error:', error);
-          setErrors(prev => ({ ...prev, location: 'Failed to fetch address from location' }));
-        }
-        
-        setIsLocatingUser(false);
-      },
-      (error) => {
-        console.error('Geolocation error:', error);
-        let errorMessage = 'Unable to access your location';
-        
-        if (error.code === error.PERMISSION_DENIED) {
-          errorMessage = 'Permission denied. Please enable location access';
-        } else if (error.code === error.POSITION_UNAVAILABLE) {
-          errorMessage = 'Location information is unavailable';
-        } else if (error.code === error.TIMEOUT) {
-          errorMessage = 'Location request timed out';
-        }
-        
-        setErrors(prev => ({ ...prev, location: errorMessage }));
-        setIsLocatingUser(false);
-      }
-    );
   };
 
   if (items.length === 0 && step !== 'confirmation') {
@@ -240,6 +176,7 @@ export default function CheckoutForm() {
                       name="firstName"
                       value={customer.firstName}
                       onChange={handleInputChange}
+                      placeholder="First Name"
                       className={cn(
                         'w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-amber-200 outline-none transition-all',
                         errors.firstName ? 'border-red-500' : 'border-gray-200 focus:border-amber-500'
@@ -258,6 +195,7 @@ export default function CheckoutForm() {
                       name="lastName"
                       value={customer.lastName}
                       onChange={handleInputChange}
+                      placeholder="Last Name"
                       className={cn(
                         'w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-amber-200 outline-none transition-all',
                         errors.lastName ? 'border-red-500' : 'border-gray-200 focus:border-amber-500'
@@ -269,13 +207,14 @@ export default function CheckoutForm() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email *
+                      Email
                     </label>
                     <input
                       type="email"
                       name="email"
                       value={customer.email}
                       onChange={handleInputChange}
+                      placeholder="Email Address (Optional)"
                       className={cn(
                         'w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-amber-200 outline-none transition-all',
                         errors.email ? 'border-red-500' : 'border-gray-200 focus:border-amber-500'
@@ -294,7 +233,7 @@ export default function CheckoutForm() {
                       name="phone"
                       value={customer.phone}
                       onChange={handleInputChange}
-                      placeholder="0337 3594376"
+                      placeholder="Phone Number"
                       className={cn(
                         'w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-amber-200 outline-none transition-all',
                         errors.phone ? 'border-red-500' : 'border-gray-200 focus:border-amber-500'
@@ -309,52 +248,19 @@ export default function CheckoutForm() {
 
               {/* Delivery Address */}
               <motion.div variants={staggerItem} className="mb-8">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Delivery Address</h3>
-                
-                {errors.location && (
-                  <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start space-x-2">
-                    <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-amber-700">{errors.location}</p>
-                  </div>
-                )}
-
-                <button
-                  type="button"
-                  onClick={handleUseCurrentLocation}
-                  disabled={isLocatingUser}
-                  className={cn(
-                    'mb-4 w-full flex items-center justify-center space-x-2 px-4 py-3 rounded-lg font-semibold transition-all',
-                    isLocatingUser
-                      ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                      : 'bg-blue-500 hover:bg-blue-600 text-white'
-                  )}
-                >
-                  {isLocatingUser ? (
-                    <>
-                      <Loader className="w-5 h-5 animate-spin" />
-                      <span>Detecting Location...</span>
-                    </>
-                  ) : (
-                    <>
-                      <MapPin className="w-5 h-5" />
-                      <span>Use Current Location</span>
-                    </>
-                  )}
-                </button>
-
                 <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Street Address * (Use geolocation button above to fill)
+                        Delivery Address *
                       </label>
                       <input
                         type="text"
                         name="address"
                         value={customer.address}
-                        readOnly
-                        placeholder="Click 'Use Current Location' button above"
+                        onChange={handleInputChange}
+                        placeholder="Enter your delivery address"
                         className={cn(
-                          'w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-amber-200 outline-none transition-all bg-gray-50 cursor-not-allowed',
+                          'w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-amber-200 outline-none transition-all',
                           errors.address ? 'border-red-500' : 'border-gray-200 focus:border-amber-500'
                         )}
                       />
@@ -365,15 +271,15 @@ export default function CheckoutForm() {
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          City * (Auto-filled)
+                          City * 
                         </label>
                         <input
                           type="text"
                           name="city"
                           value={customer.city}
-                          readOnly
+                          onChange={handleInputChange}
                           className={cn(
-                            'w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-amber-200 outline-none transition-all bg-gray-50 cursor-not-allowed',
+                            'w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-amber-200 outline-none transition-all',
                             errors.city ? 'border-red-500' : 'border-gray-200 focus:border-amber-500'
                           )}
                         />
@@ -383,15 +289,15 @@ export default function CheckoutForm() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          ZIP Code * (Auto-filled)
+                          ZIP Code 
                         </label>
                         <input
                           type="text"
                           name="zipCode"
                           value={customer.zipCode}
-                          readOnly
+                          onChange={handleInputChange}
                           className={cn(
-                            'w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-amber-200 outline-none transition-all bg-gray-50 cursor-not-allowed',
+                            'w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-amber-200 outline-none transition-all',
                             errors.zipCode ? 'border-red-500' : 'border-gray-200 focus:border-amber-500'
                           )}
                         />
@@ -409,7 +315,7 @@ export default function CheckoutForm() {
                         value={customer.deliveryInstructions}
                         onChange={handleInputChange}
                         rows={2}
-                        placeholder="e.g., Ring doorbell, leave at door, etc."
+                        placeholder="E.g., Ring doorbell twice, leave on porch, etc."
                         className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none transition-all resize-none"
                       />
                     </div>
@@ -441,9 +347,7 @@ export default function CheckoutForm() {
                 <h3 className="text-lg font-bold text-gray-900 mb-4">Payment Method</h3>
                 <div className="space-y-3">
                   {[
-                    { id: 'credit_card', icon: CreditCard, label: 'Credit Card', desc: 'Visa, Mastercard, Amex' },
-                    { id: 'debit_card', icon: CreditCard, label: 'Debit Card', desc: 'Direct bank transfer' },
-                    { id: 'wallet', icon: Wallet, label: 'Digital Wallet', desc: 'Apple Pay, Google Pay' },
+                    { id: 'payfast', icon: CreditCard, label: 'PayFast', desc: 'Secure online payment' },
                     { id: 'cod', icon: Banknote, label: 'Cash on Delivery', desc: 'Pay when you receive' },
                   ].map((method) => (
                     <button
@@ -471,26 +375,6 @@ export default function CheckoutForm() {
                   ))}
                 </div>
               </motion.div>
-
-              {/* Payment Form Placeholder */}
-              {(paymentMethod === 'credit_card' || paymentMethod === 'debit_card') && (
-                <motion.div
-                  variants={staggerItem}
-                  className="mb-8 p-4 bg-gray-50 rounded-xl"
-                >
-                  <div className="flex items-center space-x-2 text-amber-600 mb-4">
-                    <AlertCircle className="w-5 h-5" />
-                    <p className="text-sm font-medium">
-                      Payment gateway integration placeholder
-                    </p>
-                  </div>
-                  <p className="text-sm text-gray-500">
-                    {/* TODO: Integrate Stripe, PayPal, or other payment gateway here */}
-                    This is where the payment form (Stripe Elements, PayPal, etc.) would be integrated. 
-                    For now, clicking &quot;Place Order&quot; will simulate a successful payment.
-                  </p>
-                </motion.div>
-              )}
 
               {/* Action Buttons */}
               <motion.div variants={staggerItem} className="flex gap-4">
