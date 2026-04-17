@@ -43,20 +43,31 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   const [selectedLocation, setSelectedLocationState] = useState('');
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  // Open modal on mount so user can set location before ordering
+  // Only open modal after hydration and only on first visit
   useEffect(() => {
-    setIsModalOpen(true);
+    setIsHydrated(true);
+    // Check if location was already set
+    const savedLocation = localStorage.getItem('the-saucy-pan-location');
+    if (savedLocation) {
+      setSelectedLocationState(savedLocation);
+    } else {
+      // Delay modal open to after hydration completes
+      setTimeout(() => setIsModalOpen(true), 500);
+    }
   }, []);
 
   const setSelectedLocation = (location: string) => {
     setSelectedLocationState(location);
     setUserCoords(null); // clear coords when manually typed
+    localStorage.setItem('the-saucy-pan-location', location);
   };
 
   const setLocationWithCoords = (location: string, coords: { lat: number; lng: number }) => {
     setSelectedLocationState(location);
     setUserCoords(coords);
+    localStorage.setItem('the-saucy-pan-location', location);
   };
 
   const confirmLocation = () => {

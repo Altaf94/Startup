@@ -1,100 +1,100 @@
 import { Variants } from 'framer-motion';
 
-// Fade in animation
+// Fade in animation - optimized for speed
 export const fadeIn: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { duration: 0.6 },
+    transition: { duration: 0.25 },
   },
 };
 
-// Fade in with upward movement
+// Fade in with upward movement - faster animation
 export const fadeInUp: Variants = {
-  hidden: { opacity: 0, y: 40 },
+  hidden: { opacity: 0, y: 15 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: 'easeOut' },
+    transition: { duration: 0.3, ease: 'easeOut' },
   },
 };
 
-// Fade in with downward movement
+// Fade in with downward movement - faster
 export const fadeInDown: Variants = {
-  hidden: { opacity: 0, y: -40 },
+  hidden: { opacity: 0, y: -15 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: 'easeOut' },
+    transition: { duration: 0.3, ease: 'easeOut' },
   },
 };
 
-// Fade in from left
+// Fade in from left - faster
 export const fadeInLeft: Variants = {
-  hidden: { opacity: 0, x: -40 },
+  hidden: { opacity: 0, x: -15 },
   visible: {
     opacity: 1,
     x: 0,
-    transition: { duration: 0.6, ease: 'easeOut' },
+    transition: { duration: 0.3, ease: 'easeOut' },
   },
 };
 
-// Fade in from right
+// Fade in from right - faster
 export const fadeInRight: Variants = {
-  hidden: { opacity: 0, x: 40 },
+  hidden: { opacity: 0, x: 15 },
   visible: {
     opacity: 1,
     x: 0,
-    transition: { duration: 0.6, ease: 'easeOut' },
+    transition: { duration: 0.3, ease: 'easeOut' },
   },
 };
 
-// Scale in animation
+// Scale in animation - faster
 export const scaleIn: Variants = {
-  hidden: { opacity: 0, scale: 0.8 },
+  hidden: { opacity: 0, scale: 0.95 },
   visible: {
     opacity: 1,
     scale: 1,
-    transition: { duration: 0.5, ease: 'easeOut' },
+    transition: { duration: 0.2, ease: 'easeOut' },
   },
 };
 
-// Stagger container for children animations
+// Stagger container for children animations - minimal delays
 export const staggerContainer: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.1,
+      staggerChildren: 0.05,
+      delayChildren: 0,
     },
   },
 };
 
-// Stagger item for use with staggerContainer
+// Stagger item for use with staggerContainer - faster
 export const staggerItem: Variants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 10 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' },
+    transition: { duration: 0.25, ease: 'easeOut' },
   },
 };
 
-// Slide in overlay (for drawers, modals)
+// Slide in overlay (for drawers, modals) - faster spring
 export const slideInRight: Variants = {
   hidden: { x: '100%' },
   visible: {
     x: 0,
-    transition: { type: 'spring', damping: 30, stiffness: 300 },
+    transition: { type: 'spring', damping: 30, stiffness: 400 },
   },
   exit: {
     x: '100%',
-    transition: { type: 'spring', damping: 30, stiffness: 300 },
+    transition: { type: 'spring', damping: 30, stiffness: 400 },
   },
 };
 
-// Slide in from left
+// Slide in from left - faster
 export const slideInLeft: Variants = {
   hidden: { x: '-100%' },
   visible: {

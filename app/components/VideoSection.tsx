@@ -44,7 +44,7 @@ export default function VideoSection() {
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={{ once: true, margin: "-50px" }}
           className="text-center mb-16"
         >
           <motion.span
@@ -72,7 +72,7 @@ export default function VideoSection() {
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ once: true, margin: "-50px" }}
           className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
         >
           {videos.map((video, index) => (

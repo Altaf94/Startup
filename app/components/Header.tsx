@@ -95,10 +95,10 @@ export default function Header() {
               <button
                 onClick={openModal}
                 className={cn(
-                  'hidden md:flex items-center space-x-2 text-sm font-medium transition-colors px-3 py-2 rounded-lg',
+                  'hidden md:flex items-center space-x-2 text-sm font-medium transition-colors px-3 py-2 rounded-lg touch-manipulation active:scale-95 transition-transform duration-100',
                   isScrolled
-                    ? 'text-gray-700 hover:bg-amber-50 hover:text-amber-600'
-                    : 'text-white hover:bg-white/20'
+                    ? 'text-gray-700 hover:bg-amber-50 hover:text-amber-600 active:bg-amber-100'
+                    : 'text-white hover:bg-white/20 active:bg-white/30'
                 )}
               >
                 <MapPin className="w-4 h-4 flex-shrink-0" />
@@ -126,10 +126,10 @@ export default function Header() {
               <button
                 onClick={openCart}
                 className={cn(
-                  'relative p-2 rounded-full transition-colors',
+                  'relative p-2 rounded-full touch-manipulation active:scale-95 transition-transform duration-100',
                   isScrolled
-                    ? 'text-gray-700 hover:bg-amber-100'
-                    : 'text-white hover:bg-white/20'
+                    ? 'text-gray-700 hover:bg-amber-100 active:bg-amber-200'
+                    : 'text-white hover:bg-white/20 active:bg-white/30'
                 )}
                 aria-label="Open cart"
               >
@@ -149,10 +149,10 @@ export default function Header() {
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className={cn(
-                  'lg:hidden p-2 rounded-md transition-colors',
+                  'lg:hidden p-2 rounded-md touch-manipulation active:scale-95 transition-transform duration-100',
                   isScrolled
-                    ? 'text-gray-700 hover:bg-gray-100'
-                    : 'text-white hover:bg-white/20'
+                    ? 'text-gray-700 hover:bg-gray-100 active:bg-gray-200'
+                    : 'text-white hover:bg-white/20 active:bg-white/30'
                 )}
                 aria-label="Toggle menu"
               >
@@ -178,7 +178,7 @@ export default function Header() {
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              transition={{ type: 'spring', damping: 30, stiffness: 400 }}
               className="fixed top-0 right-0 bottom-0 w-72 bg-white shadow-xl z-50 lg:hidden"
             >
               <div className="p-6">

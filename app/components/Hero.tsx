@@ -18,25 +18,13 @@ export default function Hero() {
           sizes="100vw"
           className="object-cover"
           priority
-          quality={85}
+          loading="eager"
+          fetchPriority="high"
+          quality={75}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
       </div>
-
-      {/* Decorative Elements */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 0.1, scale: 1 }}
-        transition={{ duration: 1, delay: 0.5 }}
-        className="absolute top-20 right-20 w-72 h-72 rounded-full bg-amber-500 blur-3xl"
-      />
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 0.1, scale: 1 }}
-        transition={{ duration: 1, delay: 0.7 }}
-        className="absolute bottom-20 left-20 w-96 h-96 rounded-full bg-red-500 blur-3xl"
-      />
 
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32">
@@ -93,21 +81,12 @@ Because great pasta isn’t made. it’s created.
         </motion.div>
       </div>
 
-      {/* Scroll Indicator */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.5, duration: 0.8 }}
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-      >
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-          className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center pt-2"
-        >
+      {/* Scroll Indicator - CSS animation for performance */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-fade-in animation-delay-500">
+        <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center pt-2 animate-bounce-subtle">
           <div className="w-1.5 h-3 bg-white/60 rounded-full" />
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </section>
   );
 }

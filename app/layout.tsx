@@ -35,6 +35,15 @@ export const metadata: Metadata = {
   authors: [{ name: "The Saucy Pan" }],
   creator: "The Saucy Pan",
   publisher: "The Saucy Pan",
+  icons: {
+    icon: [
+      { url: "/images/logo.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/images/logo.png", type: "image/png" },
+    ],
+    shortcut: "/images/logo.png",
+  },
   formatDetection: {
     email: false,
     address: false,
@@ -96,6 +105,10 @@ export default function RootLayout({
       className={`${playfair.variable} ${inter.variable} h-full antialiased scroll-smooth`}
     >
       <head>
+        <link rel="icon" href="/images/logo.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/images/logo.png" />
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
         {/* Schema.org markup for restaurant */}
         <script
           type="application/ld+json"
