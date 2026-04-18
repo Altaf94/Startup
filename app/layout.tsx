@@ -3,7 +3,7 @@ import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/app/lib/cart-context";
 import { LocationProvider } from "@/app/lib/location-context";
-import { Header, Footer, CartDrawer } from "@/app/components";
+import { Header, Footer, CartDrawer, BackgroundMusic } from "@/app/components";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -188,6 +188,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col font-sans bg-white text-gray-900">
+        <BackgroundMusic />
         <CartProvider>
             <LocationProvider>
           <Header />

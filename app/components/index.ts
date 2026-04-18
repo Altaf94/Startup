@@ -20,3 +20,6 @@ export { default as MenuGrid } from './MenuGrid';
 export { default as OrderTracker } from './OrderTracker';
 export { default as CheckoutForm } from './CheckoutForm';
 export { default as ContactForm } from './ContactForm';
+
+// Music Component
+export { BackgroundMusic } from './BackgroundMusic';
