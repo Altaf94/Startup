@@ -83,7 +83,7 @@ export function BackgroundMusic() {
       {/* Floating music control button */}
       <button
         onClick={togglePlay}
-        className="fixed bottom-4 right-4 z-40 bg-amber-600 hover:bg-amber-700 text-white rounded-full p-3 shadow-lg transition-all duration-200 flex items-center justify-center"
+        className="fixed bottom-4 left-4 z-40 bg-amber-600 hover:bg-amber-700 text-white rounded-full p-3 shadow-lg transition-all duration-200 flex items-center justify-center"
         title={isPlaying ? 'Pause music' : 'Play music'}
       >
         {isPlaying ? (

@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { 
-  CreditCard, 
   Banknote, 
   Truck, 
   Store,
@@ -81,6 +80,40 @@ export default function CheckoutForm() {
 
     const newOrderId = generateOrderId();
     setOrderId(newOrderId);
+
+    // Send order details to backend API which will notify via WhatsApp
+    try {
+      await fetch('/api/orders/notify-whatsapp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          orderId: newOrderId,
+          customerName: `${customer.firstName} ${customer.lastName}`,
+          customerPhone: customer.phone,
+          customerEmail: customer.email,
+          address: customer.address,
+          city: customer.city,
+          zipCode: customer.zipCode,
+          location: selectedLocation,
+          items: items.map(item => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            spicyLevel: item.spicyLevel,
+          })),
+          subtotal: formatPrice(subtotal),
+          deliveryFee: formatPrice(deliveryFee),
+          total: formatPrice(total),
+          paymentMethod,
+          deliveryInstructions: customer.deliveryInstructions,
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to send WhatsApp notification:', error);
+    }
+
     clearCart();
     setStep('confirmation');
     setIsProcessing(false);
@@ -346,7 +379,6 @@ export default function CheckoutForm() {
                 <h3 className="text-lg font-bold text-gray-900 mb-4">Payment Method</h3>
                 <div className="space-y-3">
                   {[
-                    { id: 'payfast', icon: CreditCard, label: 'PayFast', desc: 'Secure online payment' },
                     { id: 'cod', icon: Banknote, label: 'Cash on Delivery', desc: 'Pay when you receive' },
                   ].map((method) => (
                     <button
