@@ -83,7 +83,7 @@ export default function CheckoutForm() {
 
     // Send order details to backend API which will notify via WhatsApp
     try {
-      await fetch('/api/orders/notify-whatsapp', {
+      const res = await fetch('/api/orders/notify-whatsapp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -110,6 +110,13 @@ export default function CheckoutForm() {
           deliveryInstructions: customer.deliveryInstructions,
         }),
       });
+
+      const json = await res.json().catch(() => null);
+      if (!res.ok) {
+        console.error('WhatsApp API error:', res.status, json);
+      } else {
+        console.log('WhatsApp API response:', json);
+      }
     } catch (error) {
       console.error('Failed to send WhatsApp notification:', error);
     }

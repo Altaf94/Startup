@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import twilio from 'twilio';
 
+// Ensure this route runs in a Node.js runtime (required for Twilio Node SDK)
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -56,7 +59,12 @@ ${deliveryInstructions ? `*Special Instructions:* ${deliveryInstructions}` : ''}
     const businessWhatsApp = process.env.BUSINESS_WHATSAPP_NUMBER;
 
     if (!accountSid || !authToken || !twilioWhatsApp || !businessWhatsApp) {
-      console.error('Missing Twilio credentials');
+      console.error('Missing Twilio credentials', {
+        TWILIO_ACCOUNT_SID: !!accountSid,
+        TWILIO_AUTH_TOKEN: !!authToken,
+        TWILIO_WHATSAPP_NUMBER: !!twilioWhatsApp,
+        BUSINESS_WHATSAPP_NUMBER: !!businessWhatsApp,
+      });
       return NextResponse.json(
         { success: false, error: 'Missing Twilio configuration' },
         { status: 500 }
@@ -80,9 +88,13 @@ ${deliveryInstructions ? `*Special Instructions:* ${deliveryInstructions}` : ''}
       { status: 200 }
     );
   } catch (error: any) {
-    console.error('❌ WhatsApp notification error:', error.message);
+    console.error('❌ WhatsApp notification error:', {
+      message: error?.message || String(error),
+      stack: error?.stack,
+      error,
+    });
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to send notification' },
+      { success: false, error: error?.message || 'Failed to send notification' },
       { status: 500 }
     );
   }
