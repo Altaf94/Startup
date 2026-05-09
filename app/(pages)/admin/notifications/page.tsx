@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Bell, BellOff, CheckCircle, Loader2 } from 'lucide-react';
 
 declare global {
@@ -14,13 +14,15 @@ export default function AdminNotificationsPage() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubscribing, setIsSubscribing] = useState(false);
+  const [sdkReady, setSdkReady] = useState(false);
   const [error, setError] = useState('');
+  const oneSignalRef = useRef<any>(null);
 
   useEffect(() => {
     const appId = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID;
     
     if (!appId) {
-      setError('OneSignal not configured');
+      setError('OneSignal App ID not configured. Add NEXT_PUBLIC_ONESIGNAL_APP_ID to environment variables.');
       setIsLoading(false);
       return;
     }
@@ -43,6 +45,10 @@ export default function AdminNotificationsPage() {
           allowLocalhostAsSecureOrigin: true,
         });
 
+        // Store reference
+        oneSignalRef.current = OneSignal;
+        setSdkReady(true);
+
         // Wait a moment for SDK to fully initialize
         await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -58,9 +64,9 @@ export default function AdminNotificationsPage() {
         
         setIsSubscribed(isCurrentlySubscribed);
         setIsLoading(false);
-      } catch (err) {
+      } catch (err: any) {
         console.error('OneSignal init error:', err);
-        setError('Failed to initialize notifications');
+        setError('Failed to initialize: ' + (err?.message || 'Unknown error'));
         setIsLoading(false);
       }
     });
@@ -71,26 +77,33 @@ export default function AdminNotificationsPage() {
     setError('');
 
     try {
-      const OneSignal = window.OneSignal;
+      const OneSignal = oneSignalRef.current || window.OneSignal;
       
-      if (!OneSignal) {
-        setError('Notification service not ready. Please refresh the page.');
-        setIsSubscribing(false);
-        return;
+      if (!OneSignal || !OneSignal.Notifications) {
+        // Try waiting a bit more
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const retryOneSignal = oneSignalRef.current || window.OneSignal;
+        if (!retryOneSignal || !retryOneSignal.Notifications) {
+          setError('Notification service is loading. Please wait a few seconds and try again.');
+          setIsSubscribing(false);
+          return;
+        }
       }
       
+      const os = oneSignalRef.current || window.OneSignal;
+      
       // Request permission
-      await OneSignal.Notifications.requestPermission();
+      await os.Notifications.requestPermission();
       
       // Wait a moment
       await new Promise(resolve => setTimeout(resolve, 300));
       
       // Check if permission was granted
-      const permission = OneSignal.Notifications?.permission;
+      const permission = os.Notifications?.permission;
       
       if (permission) {
         // Tag this user as admin - ONLY admins get order notifications
-        await OneSignal.User.addTag('role', 'admin');
+        await os.User.addTag('role', 'admin');
         setIsSubscribed(true);
       } else {
         setError('Permission denied. Please allow notifications in your browser settings.');
@@ -107,7 +120,7 @@ export default function AdminNotificationsPage() {
     setIsSubscribing(true);
     
     try {
-      const OneSignal = window.OneSignal;
+      const OneSignal = oneSignalRef.current || window.OneSignal;
       if (!OneSignal) {
         setError('Notification service not ready');
         setIsSubscribing(false);
@@ -166,18 +179,34 @@ export default function AdminNotificationsPage() {
             </div>
           ) : (
             <div className="text-center">
-              <button
-                onClick={handleSubscribe}
-                disabled={isSubscribing}
-                className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
-              >
-                {isSubscribing ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Bell className="w-5 h-5" />
-                )}
-                Subscribe to Order Notifications
-              </button>
+              {!sdkReady && !error ? (
+                <>
+                  <div className="flex items-center justify-center gap-2 text-amber-600 mb-4">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Loading notification service...</span>
+                  </div>
+                  <button
+                    disabled
+                    className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed"
+                  >
+                    <Bell className="w-5 h-5" />
+                    Please wait...
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={handleSubscribe}
+                  disabled={isSubscribing || !sdkReady}
+                  className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+                >
+                  {isSubscribing ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Bell className="w-5 h-5" />
+                  )}
+                  Subscribe to Order Notifications
+                </button>
+              )}
               <p className="text-sm text-gray-500 mt-4">
                 Only you (admins) will receive these notifications, not customers.
               </p>
