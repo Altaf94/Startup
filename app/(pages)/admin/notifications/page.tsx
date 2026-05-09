@@ -19,6 +19,7 @@ export default function AdminNotificationsPage() {
   const [isIOS, setIsIOS] = useState(false);
   const [isPWA, setIsPWA] = useState(false);
   const oneSignalRef = useRef<any>(null);
+  const oneSignalAppId = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || 'a7a990dd-02e8-4d63-bf78-0f75cc879629';
 
   useEffect(() => {
     // Detect iOS browsers that support home-screen web push.
@@ -36,7 +37,7 @@ export default function AdminNotificationsPage() {
       return;
     }
     
-    const appId = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID;
+    const appId = oneSignalAppId;
     
     if (!appId) {
       setError('OneSignal App ID not configured. Add NEXT_PUBLIC_ONESIGNAL_APP_ID to Vercel environment variables.');
@@ -85,7 +86,7 @@ export default function AdminNotificationsPage() {
     });
 
     return () => clearTimeout(timeout);
-  }, []);
+  }, [oneSignalAppId]);
 
   const handleSubscribe = async () => {
     setIsSubscribing(true);

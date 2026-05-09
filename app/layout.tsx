@@ -7,7 +7,7 @@ import { LocationProvider } from "@/app/lib/location-context";
 import { Header, Footer, CartDrawer, BackgroundMusic } from "@/app/components";
 
 const siteUrl = "https://www.thesaucypan.com";
-const oneSignalAppId = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID;
+const oneSignalAppId = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "a7a990dd-02e8-4d63-bf78-0f75cc879629";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
