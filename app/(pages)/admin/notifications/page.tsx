@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Bell, BellOff, CheckCircle, Loader2 } from 'lucide-react';
+import { Bell, BellOff, CheckCircle, Loader2, Share, Plus } from 'lucide-react';
 
 declare global {
   interface Window {
@@ -16,9 +16,26 @@ export default function AdminNotificationsPage() {
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [sdkReady, setSdkReady] = useState(false);
   const [error, setError] = useState('');
+  const [isIOS, setIsIOS] = useState(false);
+  const [isPWA, setIsPWA] = useState(false);
   const oneSignalRef = useRef<any>(null);
 
   useEffect(() => {
+    // Detect iOS
+    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    setIsIOS(iOS);
+    
+    // Check if running as PWA (standalone mode)
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || 
+                       (window.navigator as any).standalone === true;
+    setIsPWA(standalone);
+    
+    // If iOS but not PWA, don't try to load OneSignal
+    if (iOS && !standalone) {
+      setIsLoading(false);
+      return;
+    }
+    
     const appId = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID;
     
     if (!appId) {
@@ -150,6 +167,65 @@ export default function AdminNotificationsPage() {
       setIsSubscribing(false);
     }
   };
+
+  // Show iOS install instructions if on iOS but not PWA
+  if (isIOS && !isPWA) {
+    return (
+      <div className="min-h-screen bg-gray-100 pt-24 pb-20">
+        <div className="max-w-lg mx-auto px-4">
+          <div className="bg-white rounded-2xl shadow-lg p-8">
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Bell className="w-8 h-8 text-amber-600" />
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900">Install App First</h1>
+              <p className="text-gray-600 mt-2">
+                To receive push notifications on iPhone, you need to install this website as an app.
+              </p>
+            </div>
+
+            <div className="bg-amber-50 rounded-xl p-6 mb-6">
+              <h3 className="font-semibold text-gray-900 mb-4">How to install:</h3>
+              <ol className="space-y-4 text-gray-700">
+                <li className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 bg-amber-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
+                  <div>
+                    <p>Tap the <strong>Share</strong> button</p>
+                    <div className="flex items-center gap-1 text-blue-600 mt-1">
+                      <Share className="w-5 h-5" />
+                      <span className="text-sm">(at the bottom of Safari)</span>
+                    </div>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 bg-amber-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
+                  <div>
+                    <p>Scroll down and tap <strong>&quot;Add to Home Screen&quot;</strong></p>
+                    <div className="flex items-center gap-1 text-gray-500 mt-1">
+                      <Plus className="w-5 h-5" />
+                      <span className="text-sm">Add to Home Screen</span>
+                    </div>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 bg-amber-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                  <p>Tap <strong>&quot;Add&quot;</strong> in the top right corner</p>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 bg-amber-600 text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
+                  <p>Open the app from your home screen and return to this page</p>
+                </li>
+              </ol>
+            </div>
+
+            <p className="text-sm text-gray-500 text-center">
+              After installing, you&apos;ll be able to subscribe to push notifications.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 pt-24 pb-20">
