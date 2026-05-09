@@ -81,45 +81,54 @@ export default function CheckoutForm() {
     const newOrderId = generateOrderId();
     setOrderId(newOrderId);
 
-    // Send order details to backend API which will notify via WhatsApp
-    try {
-      const res = await fetch('/api/orders/notify-whatsapp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          orderId: newOrderId,
-          customerName: `${customer.firstName} ${customer.lastName}`,
-          customerPhone: customer.phone,
-          customerEmail: customer.email,
-          address: customer.address,
-          city: customer.city,
-          zipCode: customer.zipCode,
-          location: selectedLocation,
-          items: items.map(item => ({
-            name: item.name,
-            quantity: item.quantity,
-            price: item.price,
-            spicyLevel: item.spicyLevel,
-          })),
-          subtotal: formatPrice(subtotal),
-          deliveryFee: formatPrice(deliveryFee),
-          total: formatPrice(total),
-          paymentMethod,
-          deliveryInstructions: customer.deliveryInstructions,
-        }),
-      });
+    // Prepare order data for notifications
+    const orderData = {
+      orderId: newOrderId,
+      customerName: `${customer.firstName} ${customer.lastName}`,
+      customerPhone: customer.phone,
+      customerEmail: customer.email,
+      address: customer.address,
+      city: customer.city,
+      zipCode: customer.zipCode,
+      location: selectedLocation,
+      items: items.map(item => ({
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        spicyLevel: item.spicyLevel,
+      })),
+      subtotal: formatPrice(subtotal),
+      deliveryFee: formatPrice(deliveryFee),
+      total: formatPrice(total),
+      paymentMethod,
+      deliveryInstructions: customer.deliveryInstructions,
+    };
 
-      const json = await res.json().catch(() => null);
-      if (!res.ok) {
-        console.error('WhatsApp API error:', res.status, json);
-      } else {
-        console.log('WhatsApp API response:', json);
+    // Send notifications via Email AND WhatsApp (in parallel)
+    const sendNotification = async (endpoint: string, name: string) => {
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orderData),
+        });
+        const json = await res.json().catch(() => null);
+        if (!res.ok) {
+          console.error(`${name} API error:`, res.status, json);
+        } else {
+          console.log(`${name} API response:`, json);
+        }
+      } catch (error) {
+        console.error(`Failed to send ${name} notification:`, error);
       }
-    } catch (error) {
-      console.error('Failed to send WhatsApp notification:', error);
-    }
+    };
+
+    // Send all notifications in parallel (Email, WhatsApp, Push)
+    await Promise.all([
+      sendNotification('/api/orders/notify-email', 'Email'),
+      sendNotification('/api/orders/notify-whatsapp', 'WhatsApp'),
+      sendNotification('/api/orders/notify-push', 'Push'),
+    ]);
 
     clearCart();
     setStep('confirmation');
