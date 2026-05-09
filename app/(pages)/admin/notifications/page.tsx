@@ -28,10 +28,13 @@ export default function AdminNotificationsPage() {
     // Load OneSignal SDK
     window.OneSignalDeferred = window.OneSignalDeferred || [];
     
-    const script = document.createElement('script');
-    script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
-    script.defer = true;
-    document.head.appendChild(script);
+    // Check if script already exists
+    if (!document.querySelector('script[src*="OneSignalSDK"]')) {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    }
 
     window.OneSignalDeferred.push(async function(OneSignal: any) {
       try {
@@ -40,10 +43,20 @@ export default function AdminNotificationsPage() {
           allowLocalhostAsSecureOrigin: true,
         });
 
-        // Check current subscription status
-        const permission = await OneSignal.Notifications.permission;
-        const optedIn = await OneSignal.User.PushSubscription.optedIn;
-        setIsSubscribed(permission && optedIn);
+        // Wait a moment for SDK to fully initialize
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Check current subscription status safely
+        let isCurrentlySubscribed = false;
+        try {
+          const permission = OneSignal.Notifications?.permission;
+          const optedIn = await OneSignal.User?.PushSubscription?.optedIn;
+          isCurrentlySubscribed = !!(permission && optedIn);
+        } catch {
+          isCurrentlySubscribed = false;
+        }
+        
+        setIsSubscribed(isCurrentlySubscribed);
         setIsLoading(false);
       } catch (err) {
         console.error('OneSignal init error:', err);
@@ -60,11 +73,20 @@ export default function AdminNotificationsPage() {
     try {
       const OneSignal = window.OneSignal;
       
+      if (!OneSignal) {
+        setError('Notification service not ready. Please refresh the page.');
+        setIsSubscribing(false);
+        return;
+      }
+      
       // Request permission
       await OneSignal.Notifications.requestPermission();
       
+      // Wait a moment
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       // Check if permission was granted
-      const permission = await OneSignal.Notifications.permission;
+      const permission = OneSignal.Notifications?.permission;
       
       if (permission) {
         // Tag this user as admin - ONLY admins get order notifications
@@ -75,7 +97,7 @@ export default function AdminNotificationsPage() {
       }
     } catch (err: any) {
       console.error('Subscription error:', err);
-      setError(err.message || 'Failed to subscribe');
+      setError(err?.message || 'Failed to subscribe. Please try again.');
     } finally {
       setIsSubscribing(false);
     }
@@ -86,12 +108,17 @@ export default function AdminNotificationsPage() {
     
     try {
       const OneSignal = window.OneSignal;
-      await OneSignal.User.PushSubscription.optOut();
-      await OneSignal.User.removeTag('role');
+      if (!OneSignal) {
+        setError('Notification service not ready');
+        setIsSubscribing(false);
+        return;
+      }
+      await OneSignal.User?.PushSubscription?.optOut();
+      await OneSignal.User?.removeTag('role');
       setIsSubscribed(false);
     } catch (err: any) {
       console.error('Unsubscribe error:', err);
-      setError(err.message || 'Failed to unsubscribe');
+      setError(err?.message || 'Failed to unsubscribe');
     } finally {
       setIsSubscribing(false);
     }
