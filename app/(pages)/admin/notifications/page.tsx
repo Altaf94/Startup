@@ -22,6 +22,7 @@ export default function AdminNotificationsPage() {
   const [isIOS, setIsIOS] = useState(false);
   const [isPWA, setIsPWA] = useState(false);
   const [useDirectMethod, setUseDirectMethod] = useState(false);
+  const [testResult, setTestResult] = useState('');
   const oneSignalRef = useRef<any>(null);
   const oneSignalAppId = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || 'a7a990dd-02e8-4d63-bf78-0f75cc879629';
 
@@ -400,6 +401,18 @@ export default function AdminNotificationsPage() {
               <p className="text-gray-600 mb-6">
                 You will receive push notifications on this device when new orders come in.
               </p>
+              <button
+                onClick={handleTestNotification}
+                className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors mb-3"
+              >
+                <Bell className="w-5 h-5" />
+                Send Test Notification
+              </button>
+              {testResult && (
+                <div className={`mb-3 p-2 rounded text-sm ${testResult.includes('✅') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                  {testResult}
+                </div>
+              )}
               <button
                 onClick={useDirectMethod ? handleDirectUnsubscribe : handleUnsubscribe}
                 disabled={isSubscribing}

@@ -23,27 +23,51 @@ const SUBSCRIPTIONS_FILE = path.join('/tmp', 'push-subscriptions.json');
 // Send notification using web-push (direct method, bypasses OneSignal)
 async function sendDirectPushNotifications(payload: any) {
   try {
+    console.log('🔍 Checking for subscriptions file at:', SUBSCRIPTIONS_FILE);
+    
+    // Check if file exists
+    try {
+      await fs.access(SUBSCRIPTIONS_FILE);
+      console.log('✅ Subscriptions file exists');
+    } catch {
+      console.log('❌ Subscriptions file does NOT exist - /tmp is ephemeral on Vercel!');
+      console.log('📝 Note: Subscriptions saved on one serverless instance do not persist to others');
+      return { sent: 0, failed: 0 };
+    }
+    
     const fileContent = await fs.readFile(SUBSCRIPTIONS_FILE, 'utf-8');
     const subscriptions = JSON.parse(fileContent);
+    
+    console.log(`📋 Found ${subscriptions.length} subscription(s) in file`);
     
     if (subscriptions.length === 0) {
       console.log('No direct push subscriptions found');
       return { sent: 0, failed: 0 };
     }
 
+    console.log('📤 Sending push notifications to', subscriptions.length, 'device(s)...');
+    
     const results = await Promise.allSettled(
-      subscriptions.map((subscription: any) =>
-        webPush.sendNotification(subscription, JSON.stringify(payload))
-      )
+      subscriptions.map((subscription: any, index: number) => {
+        console.log(`  Sending to device ${index + 1}:`, subscription.endpoint.substring(0, 50) + '...');
+        return webPush.sendNotification(subscription, JSON.stringify(payload));
+      })
     );
 
     const sent = results.filter(r => r.status === 'fulfilled').length;
     const failed = results.filter(r => r.status === 'rejected').length;
+    
+    // Log failed ones
+    results.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        console.error(`❌ Failed to send to device ${index + 1}:`, result.reason);
+      }
+    });
 
-    console.log(`✅ Direct push sent: ${sent}, failed: ${failed}`);
+    console.log(`✅ Direct push results: ${sent} sent, ${failed} failed`);
     return { sent, failed };
   } catch (error) {
-    console.error('Direct push error:', error);
+    console.error('❌ Direct push error:', error);
     return { sent: 0, failed: 0 };
   }
 }
