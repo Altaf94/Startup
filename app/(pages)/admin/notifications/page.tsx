@@ -246,6 +246,29 @@ export default function AdminNotificationsPage() {
     }
   };
 
+  // Test notification
+  const handleTestNotification = async () => {
+    setTestResult('Sending test notification...');
+    try {
+      const response = await fetch('/api/push/send-test', {
+        method: 'POST',
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setTestResult(`✅ Test sent! ${result.sent} notification(s) delivered.`);
+      } else {
+        setTestResult(`❌ ${result.error || 'Failed to send test notification'}`);
+      }
+    } catch (error: any) {
+      setTestResult(`❌ Error: ${error.message}`);
+    }
+    
+    // Clear message after 5 seconds
+    setTimeout(() => setTestResult(''), 5000);
+  };
+
   const handleSubscribe = async () => {
     setIsSubscribing(true);
     setError('');
