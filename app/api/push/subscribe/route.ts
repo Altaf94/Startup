@@ -1,17 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { sql } from '@vercel/postgres';
 
-// Use /tmp on Vercel serverless (ephemeral but works for testing)
-// For production, you should use a database
-const SUBSCRIPTIONS_FILE = path.join('/tmp', 'push-subscriptions.json');
-
-// Ensure file exists
-async function ensureFileExists() {
+// Initialize table on first run
+async function ensureTableExists() {
   try {
-    await fs.access(SUBSCRIPTIONS_FILE);
-  } catch {
-    await fs.writeFile(SUBSCRIPTIONS_FILE, JSON.stringify([]));
+    await sql`
+      CREATE TABLE IF NOT EXISTS push_subscriptions (
+        id SERIAL PRIMARY KEY,
+        endpoint TEXT UNIQUE NOT NULL,
+        keys JSONB NOT NULL,
+        expiration_time BIGINT,
+        is_admin BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+  } catch (error) {
+    console.error('Error creating table:', error);
   }
 }
 
@@ -29,32 +33,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await ensureFileExists();
+    await ensureTableExists();
     
-    // Read existing subscriptions
-    const fileContent = await fs.readFile(SUBSCRIPTIONS_FILE, 'utf-8');
-    const subscriptions = JSON.parse(fileContent);
+    // Insert or update subscription
+    await sql`
+      INSERT INTO push_subscriptions (endpoint, keys, expiration_time, is_admin)
+      VALUES (${subscription.endpoint}, ${JSON.stringify(subscription.keys)}, ${subscription.expirationTime || null}, TRUE)
+      ON CONFLICT (endpoint) 
+      DO UPDATE SET 
+        keys = ${JSON.stringify(subscription.keys)},
+        expiration_time = ${subscription.expirationTime || null},
+        created_at = CURRENT_TIMESTAMP
+    `;
     
-    console.log('Current subscriptions count:', subscriptions.length);
-    
-    // Check if this subscription already exists
-    const exists = subscriptions.some(
-      (sub: any) => sub.endpoint === subscription.endpoint
-    );
-    
-    if (!exists) {
-      // Add timestamp and admin flag
-      subscriptions.push({
-        ...subscription,
-        createdAt: new Date().toISOString(),
-        isAdmin: true,
-      });
-      
-      await fs.writeFile(SUBSCRIPTIONS_FILE, JSON.stringify(subscriptions, null, 2));
-      console.log('✅ New subscription saved! Total:', subscriptions.length);
-    } else {
-      console.log('Subscription already exists');
-    }
+    console.log('✅ Subscription saved to Postgres!');
 
     return NextResponse.json({ success: true, message: 'Subscribed successfully!' });
   } catch (error) {
@@ -79,17 +71,14 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await ensureFileExists();
+    await ensureTableExists();
     
-    const fileContent = await fs.readFile(SUBSCRIPTIONS_FILE, 'utf-8');
-    const subscriptions = JSON.parse(fileContent);
+    await sql`
+      DELETE FROM push_subscriptions 
+      WHERE endpoint = ${endpoint}
+    `;
     
-    // Remove subscription with matching endpoint
-    const filtered = subscriptions.filter((sub: any) => sub.endpoint !== endpoint);
-    
-    await fs.writeFile(SUBSCRIPTIONS_FILE, JSON.stringify(filtered, null, 2));
-    
-    console.log('✅ Subscription removed. Remaining:', filtered.length);
+    console.log('✅ Subscription removed from Postgres');
 
     return NextResponse.json({ success: true, message: 'Unsubscribed successfully!' });
   } catch (error) {

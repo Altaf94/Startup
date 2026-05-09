@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as OneSignal from '@onesignal/node-onesignal';
 import webPush from 'web-push';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { sql } from '@vercel/postgres';
 
 export const runtime = 'nodejs';
 
@@ -17,38 +16,33 @@ webPush.setVapidDetails(
   VAPID_PRIVATE_KEY
 );
 
-// Use /tmp on Vercel
-const SUBSCRIPTIONS_FILE = path.join('/tmp', 'push-subscriptions.json');
-
-// Send notification using web-push (direct method, bypasses OneSignal)
+// Send notification using web-push (direct method with Postgres storage)
 async function sendDirectPushNotifications(payload: any) {
   try {
-    console.log('🔍 Checking for subscriptions file at:', SUBSCRIPTIONS_FILE);
+    console.log('🔍 Fetching subscriptions from Postgres...');
     
-    // Check if file exists
-    try {
-      await fs.access(SUBSCRIPTIONS_FILE);
-      console.log('✅ Subscriptions file exists');
-    } catch {
-      console.log('❌ Subscriptions file does NOT exist - /tmp is ephemeral on Vercel!');
-      console.log('📝 Note: Subscriptions saved on one serverless instance do not persist to others');
-      return { sent: 0, failed: 0 };
-    }
+    const { rows } = await sql`
+      SELECT endpoint, keys, expiration_time 
+      FROM push_subscriptions 
+      WHERE is_admin = TRUE
+    `;
     
-    const fileContent = await fs.readFile(SUBSCRIPTIONS_FILE, 'utf-8');
-    const subscriptions = JSON.parse(fileContent);
+    console.log(`📋 Found ${rows.length} subscription(s) in Postgres`);
     
-    console.log(`📋 Found ${subscriptions.length} subscription(s) in file`);
-    
-    if (subscriptions.length === 0) {
+    if (rows.length === 0) {
       console.log('No direct push subscriptions found');
       return { sent: 0, failed: 0 };
     }
 
-    console.log('📤 Sending push notifications to', subscriptions.length, 'device(s)...');
+    console.log('📤 Sending push notifications to', rows.length, 'device(s)...');
     
     const results = await Promise.allSettled(
-      subscriptions.map((subscription: any, index: number) => {
+      rows.map((row: any, index: number) => {
+        const subscription = {
+          endpoint: row.endpoint,
+          keys: row.keys,
+          expirationTime: row.expiration_time
+        };
         console.log(`  Sending to device ${index + 1}:`, subscription.endpoint.substring(0, 50) + '...');
         return webPush.sendNotification(subscription, JSON.stringify(payload));
       })

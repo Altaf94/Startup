@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import webPush from 'web-push';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { sql } from '@vercel/postgres';
 
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || 'BKT14c4lbywJXA5HLebK3qQRB6fjuxDZdr3wBSIUeq_OLlZE_nHxEiYdJNhXfmv0rLArLmTJH5bBO_3LP12vMD8';
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || 'pdeCMS9xAQwcgFK-nsux07FbQQXrnjGBPOsOYqQjcuM';
@@ -13,31 +12,22 @@ webPush.setVapidDetails(
   VAPID_PRIVATE_KEY
 );
 
-const SUBSCRIPTIONS_FILE = path.join('/tmp', 'push-subscriptions.json');
-
 export async function POST(request: NextRequest) {
   try {
     console.log('📤 Test notification endpoint called');
     
-    // Check if file exists
-    try {
-      await fs.access(SUBSCRIPTIONS_FILE);
-    } catch {
+    const { rows } = await sql`
+      SELECT endpoint, keys, expiration_time 
+      FROM push_subscriptions 
+      WHERE is_admin = TRUE
+    `;
+
+    console.log(`Found ${rows.length} subscription(s) in Postgres`);
+    
+    if (rows.length === 0) {
       return NextResponse.json({
         success: false,
-        error: 'No subscriptions file found. /tmp is ephemeral - you may need to resubscribe.',
-      }, { status: 404 });
-    }
-    
-    const fileContent = await fs.readFile(SUBSCRIPTIONS_FILE, 'utf-8');
-    const subscriptions = JSON.parse(fileContent);
-    
-    console.log(`Found ${subscriptions.length} subscription(s)`);
-    
-    if (subscriptions.length === 0) {
-      return NextResponse.json({
-        success: false,
-        error: 'No subscriptions found',
+        error: 'No subscriptions found in database',
       }, { status: 404 });
     }
 
@@ -48,12 +38,17 @@ export async function POST(request: NextRequest) {
       data: { test: true },
     };
 
-    console.log('Sending test notification to', subscriptions.length, 'device(s)...');
+    console.log('Sending test notification to', rows.length, 'device(s)...');
 
     const results = await Promise.allSettled(
-      subscriptions.map((subscription: any) =>
-        webPush.sendNotification(subscription, JSON.stringify(payload))
-      )
+      rows.map((row: any) => {
+        const subscription = {
+          endpoint: row.endpoint,
+          keys: row.keys,
+          expirationTime: row.expiration_time
+        };
+        return webPush.sendNotification(subscription, JSON.stringify(payload));
+      })
     );
 
     const sent = results.filter(r => r.status === 'fulfilled').length;
