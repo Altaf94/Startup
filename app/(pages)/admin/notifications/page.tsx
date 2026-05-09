@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Bell, BellOff, CheckCircle, Loader2, Share, Plus } from 'lucide-react';
+import { Bell, BellOff, CheckCircle, Loader2, Share, Plus, Zap } from 'lucide-react';
 
 declare global {
   interface Window {
@@ -9,6 +9,9 @@ declare global {
     OneSignal?: any;
   }
 }
+
+// VAPID public key for direct push subscription
+const VAPID_PUBLIC_KEY = 'BKT14c4lbywJXA5HLebK3qQRB6fjuxDZdr3wBSIUeq_OLlZE_nHxEiYdJNhXfmv0rLArLmTJH5bBO_3LP12vMD8';
 
 export default function AdminNotificationsPage() {
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -18,6 +21,7 @@ export default function AdminNotificationsPage() {
   const [error, setError] = useState('');
   const [isIOS, setIsIOS] = useState(false);
   const [isPWA, setIsPWA] = useState(false);
+  const [useDirectMethod, setUseDirectMethod] = useState(false);
   const oneSignalRef = useRef<any>(null);
   const oneSignalAppId = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || 'a7a990dd-02e8-4d63-bf78-0f75cc879629';
 
@@ -31,8 +35,18 @@ export default function AdminNotificationsPage() {
                        (window.navigator as any).standalone === true;
     setIsPWA(standalone);
     
+    // Check if already subscribed via direct method
+    checkDirectSubscription();
+    
     // If iOS but not PWA, don't try to load OneSignal
     if (iOS && !standalone) {
+      setIsLoading(false);
+      return;
+    }
+    
+    // For iOS PWA, prefer direct method to avoid SDK timeout issues
+    if (iOS && standalone) {
+      setUseDirectMethod(true);
       setIsLoading(false);
       return;
     }
@@ -51,7 +65,9 @@ export default function AdminNotificationsPage() {
     // Timeout - if OneSignal never becomes ready, show a useful error.
     const timeout = setTimeout(() => {
       if (!oneSignalRef.current) {
-        setError('OneSignal is taking too long to initialize. Confirm your OneSignal Web platform uses https://www.thesaucypan.com exactly, then reopen the home-screen app.');
+        // Switch to direct method if SDK times out
+        console.log('OneSignal SDK timed out, switching to direct method');
+        setUseDirectMethod(true);
         setIsLoading(false);
       }
     }, 10000);
@@ -80,13 +96,135 @@ export default function AdminNotificationsPage() {
         setIsLoading(false);
       } catch (err: any) {
         console.error('OneSignal init error:', err);
-        setError('Failed to initialize: ' + (err?.message || 'Unknown error. Make sure the OneSignal Web platform is configured for https://www.thesaucypan.com and reopen the home-screen app.'));
+        // Switch to direct method on error
+        setUseDirectMethod(true);
         setIsLoading(false);
       }
     });
 
     return () => clearTimeout(timeout);
   }, [oneSignalAppId]);
+
+  // Check if already subscribed via direct method
+  const checkDirectSubscription = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      return;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      
+      if (subscription) {
+        setIsSubscribed(true);
+        localStorage.setItem('admin_notif_subscribed', 'true');
+      }
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+    }
+  };
+
+  // Direct subscription using native Web Push API
+  const handleDirectSubscribe = async () => {
+    setIsSubscribing(true);
+    setError('');
+
+    try {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        setError('Push notifications are not supported in this browser');
+        setIsSubscribing(false);
+        return;
+      }
+
+      // Register service worker
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      await navigator.serviceWorker.ready;
+
+      // Request permission
+      const permission = await Notification.requestPermission();
+      
+      if (permission !== 'granted') {
+        setError('Permission denied. Please allow notifications in your browser settings.');
+        setIsSubscribing(false);
+        return;
+      }
+
+      // Subscribe to push notifications
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
+
+      // Send subscription to backend
+      const response = await fetch('/api/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(subscription),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save subscription');
+      }
+
+      setIsSubscribed(true);
+      localStorage.setItem('admin_notif_subscribed', 'true');
+      
+      // Show success message
+      setError(''); // Clear any previous errors
+      
+    } catch (err: any) {
+      console.error('Direct subscription error:', err);
+      setError(err?.message || 'Failed to subscribe. Please try again.');
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
+
+  // Helper function to convert VAPID key
+  function urlBase64ToUint8Array(base64String: string) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/\-/g, '+')
+      .replace(/_/g, '/');
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  // Direct unsubscribe
+  const handleDirectUnsubscribe = async () => {
+    setIsSubscribing(true);
+    
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      
+      if (subscription) {
+        // Unsubscribe from push
+        await subscription.unsubscribe();
+        
+        // Remove from backend
+        await fetch('/api/push/subscribe', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ endpoint: subscription.endpoint }),
+        });
+      }
+      
+      setIsSubscribed(false);
+      localStorage.removeItem('admin_notif_subscribed');
+    } catch (err: any) {
+      console.error('Unsubscribe error:', err);
+      setError(err?.message || 'Failed to unsubscribe');
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
 
   const handleSubscribe = async () => {
     setIsSubscribing(true);
@@ -244,7 +382,7 @@ export default function AdminNotificationsPage() {
                 You will receive push notifications on this device when new orders come in.
               </p>
               <button
-                onClick={handleUnsubscribe}
+                onClick={useDirectMethod ? handleDirectUnsubscribe : handleUnsubscribe}
                 disabled={isSubscribing}
                 className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
               >
@@ -258,12 +396,43 @@ export default function AdminNotificationsPage() {
             </div>
           ) : (
             <div className="text-center">
-              {!sdkReady && !error ? (
+              {useDirectMethod ? (
+                <>
+                  <div className="bg-blue-50 rounded-xl p-4 mb-6">
+                    <div className="flex items-center gap-2 justify-center text-blue-700 mb-2">
+                      <Zap className="w-5 h-5" />
+                      <span className="font-semibold">Direct Method</span>
+                    </div>
+                    <p className="text-sm text-blue-600">
+                      Using native browser push (faster, no SDK needed)
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleDirectSubscribe}
+                    disabled={isSubscribing}
+                    className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+                  >
+                    {isSubscribing ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Bell className="w-5 h-5" />
+                    )}
+                    Subscribe to Order Notifications
+                  </button>
+                </>
+              ) : !sdkReady && !error ? (
                 <>
                   <div className="flex items-center justify-center gap-2 text-amber-600 mb-4">
                     <Loader2 className="w-5 h-5 animate-spin" />
                     <span>Loading notification service...</span>
                   </div>
+                  <button
+                    onClick={handleDirectSubscribe}
+                    className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mb-3"
+                  >
+                    <Zap className="w-5 h-5" />
+                    Use Direct Method Instead
+                  </button>
                   <button
                     disabled
                     className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed"
@@ -273,18 +442,27 @@ export default function AdminNotificationsPage() {
                   </button>
                 </>
               ) : (
-                <button
-                  onClick={handleSubscribe}
-                  disabled={isSubscribing || !sdkReady}
-                  className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
-                >
-                  {isSubscribing ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <Bell className="w-5 h-5" />
-                  )}
-                  Subscribe to Order Notifications
-                </button>
+                <>
+                  <button
+                    onClick={handleSubscribe}
+                    disabled={isSubscribing || !sdkReady}
+                    className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50 mb-3"
+                  >
+                    {isSubscribing ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Bell className="w-5 h-5" />
+                    )}
+                    Subscribe with OneSignal
+                  </button>
+                  <button
+                    onClick={handleDirectSubscribe}
+                    className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Zap className="w-5 h-5" />
+                    Or Use Direct Method
+                  </button>
+                </>
               )}
               <p className="text-sm text-gray-500 mt-4">
                 Only you (admins) will receive these notifications, not customers.

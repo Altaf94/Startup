@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/app/lib/cart-context";
@@ -159,14 +158,9 @@ export default function RootLayout({
             }),
           }}
         />
-        <Script
-          src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"
-          strategy="afterInteractive"
-        />
+        <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer />
         {oneSignalAppId ? (
-          <Script
-            id="onesignal-init"
-            strategy="afterInteractive"
+          <script
             dangerouslySetInnerHTML={{
               __html: `
                 window.OneSignalDeferred = window.OneSignalDeferred || [];
