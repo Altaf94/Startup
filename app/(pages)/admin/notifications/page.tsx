@@ -45,11 +45,11 @@ export default function AdminNotificationsPage() {
       return;
     }
     
-    // For iOS PWA, prefer direct method to avoid SDK timeout issues
+    // For iOS PWA, use OneSignal (it has persistent storage)
+    // Direct method has /tmp ephemeral issue on Vercel
     if (iOS && standalone) {
-      setUseDirectMethod(true);
-      setIsLoading(false);
-      return;
+      // Still initialize OneSignal for iOS PWA
+      console.log('iOS PWA detected, using OneSignal for persistent storage');
     }
     
     const appId = oneSignalAppId;
