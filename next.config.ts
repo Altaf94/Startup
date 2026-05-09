@@ -1,5 +1,17 @@
 import type { NextConfig } from "next";
 
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://nominatim.openstreetmap.org https://cdn.onesignal.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "img-src 'self' https: data:",
+  "font-src 'self' https://fonts.gstatic.com",
+  "connect-src 'self' https://nominatim.openstreetmap.org https://api.onesignal.com https://cdn.onesignal.com https://onesignal.com https://*.onesignal.com",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join('; ');
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -15,7 +27,7 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60,
     dangerouslyAllowSVG: true,
-    contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://nominatim.openstreetmap.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://nominatim.openstreetmap.org; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+    contentSecurityPolicy,
   },
   
   // Security headers
@@ -46,7 +58,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://nominatim.openstreetmap.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://nominatim.openstreetmap.org; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+            value: contentSecurityPolicy,
           },
           {
             key: 'Strict-Transport-Security',
