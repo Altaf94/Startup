@@ -17,7 +17,8 @@ webPush.setVapidDetails(
   VAPID_PRIVATE_KEY
 );
 
-const SUBSCRIPTIONS_FILE = path.join(process.cwd(), 'data', 'push-subscriptions.json');
+// Use /tmp on Vercel
+const SUBSCRIPTIONS_FILE = path.join('/tmp', 'push-subscriptions.json');
 
 // Send notification using web-push (direct method, bypasses OneSignal)
 async function sendDirectPushNotifications(payload: any) {

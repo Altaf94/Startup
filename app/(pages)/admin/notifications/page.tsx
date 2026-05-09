@@ -130,18 +130,25 @@ export default function AdminNotificationsPage() {
     setError('');
 
     try {
+      console.log('Starting subscription process...');
+      
       if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
         setError('Push notifications are not supported in this browser');
         setIsSubscribing(false);
         return;
       }
 
+      console.log('Registering service worker...');
       // Register service worker
       const registration = await navigator.serviceWorker.register('/sw.js');
+      console.log('Service worker registered, waiting for ready...');
       await navigator.serviceWorker.ready;
+      console.log('Service worker ready!');
 
       // Request permission
+      console.log('Requesting notification permission...');
       const permission = await Notification.requestPermission();
+      console.log('Permission result:', permission);
       
       if (permission !== 'granted') {
         setError('Permission denied. Please allow notifications in your browser settings.');
@@ -150,31 +157,43 @@ export default function AdminNotificationsPage() {
       }
 
       // Subscribe to push notifications
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-      });
+      console.log('Creating push subscription...');
+      try {
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        });
+        console.log('Push subscription created:', subscription.endpoint);
 
-      // Send subscription to backend
-      const response = await fetch('/api/push/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(subscription),
-      });
+        // Send subscription to backend
+        console.log('Sending subscription to backend...');
+        const response = await fetch('/api/push/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(subscription.toJSON()),
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to save subscription');
+        console.log('Backend response status:', response.status);
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Server error: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('Subscription saved successfully:', result);
+
+        setIsSubscribed(true);
+        localStorage.setItem('admin_notif_subscribed', 'true');
+        
+      } catch (subError: any) {
+        console.error('Subscription creation error:', subError);
+        throw new Error(`Subscription failed: ${subError.message}`);
       }
-
-      setIsSubscribed(true);
-      localStorage.setItem('admin_notif_subscribed', 'true');
-      
-      // Show success message
-      setError(''); // Clear any previous errors
       
     } catch (err: any) {
       console.error('Direct subscription error:', err);
-      setError(err?.message || 'Failed to subscribe. Please try again.');
+      setError(err?.message || 'Failed to subscribe. Check console for details.');
     } finally {
       setIsSubscribing(false);
     }
