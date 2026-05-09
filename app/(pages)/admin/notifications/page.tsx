@@ -44,38 +44,20 @@ export default function AdminNotificationsPage() {
       return;
     }
 
-    // Timeout - if SDK doesn't load in 10 seconds, show error
+    // The SDK is loaded in the app head using the documented OneSignal setup.
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+
+    // Timeout - if OneSignal never becomes ready, show a useful error.
     const timeout = setTimeout(() => {
-      if (isLoading) {
-        setError('OneSignal is taking too long to load. Please ensure Web Push is configured in OneSignal dashboard for your domain.');
+      if (!oneSignalRef.current) {
+        setError('OneSignal is taking too long to initialize. Confirm your OneSignal Web platform uses https://www.thesaucypan.com exactly, then reopen the home-screen app.');
         setIsLoading(false);
       }
     }, 10000);
 
-    // Load OneSignal SDK
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    
-    // Check if script already exists
-    if (!document.querySelector('script[src*="OneSignalSDK"]')) {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
-      script.defer = true;
-      script.onerror = () => {
-        clearTimeout(timeout);
-        setError('Failed to load OneSignal. On iPhone, open the installed home-screen app and try again.');
-        setIsLoading(false);
-      };
-      document.head.appendChild(script);
-    }
-
     window.OneSignalDeferred.push(async function(OneSignal: any) {
       clearTimeout(timeout);
       try {
-        await OneSignal.init({
-          appId: appId,
-          allowLocalhostAsSecureOrigin: true,
-        });
-
         // Store reference
         oneSignalRef.current = OneSignal;
         setSdkReady(true);
@@ -97,10 +79,12 @@ export default function AdminNotificationsPage() {
         setIsLoading(false);
       } catch (err: any) {
         console.error('OneSignal init error:', err);
-        setError('Failed to initialize: ' + (err?.message || 'Unknown error. Make sure Web Push is configured in OneSignal for this domain and reopen the home-screen app.'));
+        setError('Failed to initialize: ' + (err?.message || 'Unknown error. Make sure the OneSignal Web platform is configured for https://www.thesaucypan.com and reopen the home-screen app.'));
         setIsLoading(false);
       }
     });
+
+    return () => clearTimeout(timeout);
   }, []);
 
   const handleSubscribe = async () => {

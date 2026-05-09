@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/app/lib/cart-context";
 import { LocationProvider } from "@/app/lib/location-context";
 import { Header, Footer, CartDrawer, BackgroundMusic } from "@/app/components";
+
+const siteUrl = "https://www.thesaucypan.com";
+const oneSignalAppId = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID;
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -49,14 +53,14 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://thesaucypan.com"),
+  metadataBase: new URL(siteUrl),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://thesaucypan.com",
+    url: siteUrl,
     siteName: "The Saucy Pan",
     title: "The Saucy Pan | Authentic Italian Pasta",
     description:
@@ -121,8 +125,8 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "FoodEstablishment",
               name: "The Saucy Pan",
-              image: "https://thesaucypan.com/og-image.jpg",
-              url: "https://thesaucypan.com",
+              image: `${siteUrl}/og-image.jpg`,
+              url: siteUrl,
               telephone: "+92-337-3594376",
               address: {
                 "@type": "PostalAddress",
@@ -151,10 +155,31 @@ export default function RootLayout({
               acceptsReservations: "False",
               hasDeliveryService: "True",
               hasPickupService: "True",
-              menu: "https://thesaucypan.com/menu",
+              menu: `${siteUrl}/menu`,
             }),
           }}
         />
+        <Script
+          src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"
+          strategy="afterInteractive"
+        />
+        {oneSignalAppId ? (
+          <Script
+            id="onesignal-init"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
+                window.OneSignalDeferred = window.OneSignalDeferred || [];
+                window.OneSignalDeferred.push(async function(OneSignal) {
+                  await OneSignal.init({
+                    appId: ${JSON.stringify(oneSignalAppId)},
+                    allowLocalhostAsSecureOrigin: true,
+                  });
+                });
+              `,
+            }}
+          />
+        ) : null}
         
         {/* Security Initialization */}
         <script
