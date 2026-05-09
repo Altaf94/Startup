@@ -39,70 +39,17 @@ export default function AdminNotificationsPage() {
     // Check if already subscribed via direct method
     checkDirectSubscription();
     
-    // If iOS but not PWA, don't try to load OneSignal
+    // If iOS but not PWA, don't continue
     if (iOS && !standalone) {
       setIsLoading(false);
       return;
     }
     
-    // For iOS PWA, use OneSignal (it has persistent storage)
-    // Direct method has /tmp ephemeral issue on Vercel
-    if (iOS && standalone) {
-      // Still initialize OneSignal for iOS PWA
-      console.log('iOS PWA detected, using OneSignal for persistent storage');
-    }
-    
-    const appId = oneSignalAppId;
-    
-    if (!appId) {
-      setError('OneSignal App ID not configured. Add NEXT_PUBLIC_ONESIGNAL_APP_ID to Vercel environment variables.');
-      setIsLoading(false);
-      return;
-    }
-
-    // The SDK is loaded in the app head using the documented OneSignal setup.
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-
-    // Timeout - if OneSignal never becomes ready, show error
-    const timeout = setTimeout(() => {
-      if (!oneSignalRef.current) {
-        console.error('OneSignal SDK failed to initialize after 30 seconds');
-        setError('OneSignal is taking too long. Please refresh and try again.');
-        setIsLoading(false);
-      }
-    }, 30000);
-
-    window.OneSignalDeferred.push(async function(OneSignal: any) {
-      clearTimeout(timeout);
-      try {
-        // Store reference
-        oneSignalRef.current = OneSignal;
-        setSdkReady(true);
-
-        // Wait a moment for SDK to fully initialize
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // Check current subscription status safely
-        let isCurrentlySubscribed = false;
-        try {
-          const permission = OneSignal.Notifications?.permission;
-          const optedIn = await OneSignal.User?.PushSubscription?.optedIn;
-          isCurrentlySubscribed = !!(permission && optedIn);
-        } catch {
-          isCurrentlySubscribed = false;
-        }
-        
-        setIsSubscribed(isCurrentlySubscribed);
-        setIsLoading(false);
-      } catch (err: any) {
-        console.error('OneSignal init error:', err);
-        setError('Failed to initialize OneSignal: ' + (err?.message || 'Unknown error'));
-        setIsLoading(false);
-      }
-    });
-
-    return () => clearTimeout(timeout);
-  }, [oneSignalAppId]);
+    // Using direct Web Push API with Postgres storage (no OneSignal)
+    console.log('Using native Web Push API with Postgres persistence');
+    setSdkReady(true);
+    setIsLoading(false);
+  }, []);
 
   // Check if already subscribed via direct method
   const checkDirectSubscription = async () => {
@@ -444,7 +391,7 @@ export default function AdminNotificationsPage() {
                 </div>
               )}
               <button
-                onClick={handleUnsubscribe}
+                onClick={handleDirectUnsubscribe}
                 disabled={isSubscribing}
                 className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
               >
@@ -458,28 +405,18 @@ export default function AdminNotificationsPage() {
             </div>
           ) : (
             <div className="text-center">
-              {!sdkReady && !error ? (
-                <>
-                  <div className="flex flex-col items-center justify-center gap-3 py-8">
-                    <Loader2 className="w-12 h-12 text-amber-600 animate-spin" />
-                    <p className="text-gray-600">Initializing OneSignal...</p>
-                    <p className="text-sm text-gray-500">This may take up to 30 seconds on first load</p>
-                  </div>
-                </>
-              ) : (
-                <button
-                  onClick={handleSubscribe}
-                  disabled={isSubscribing || !sdkReady}
-                  className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
-                >
-                  {isSubscribing ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <Bell className="w-5 h-5" />
-                  )}
-                  Subscribe to Order Notifications
-                </button>
-              )}
+              <button
+                onClick={handleDirectSubscribe}
+                disabled={isSubscribing}
+                className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+              >
+                {isSubscribing ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Bell className="w-5 h-5" />
+                )}
+                Subscribe to Order Notifications
+              </button>
               <p className="text-sm text-gray-500 mt-4">
                 Only you (admins) will receive these notifications, not customers.
               </p>
