@@ -136,6 +136,8 @@ export default function AdminNotificationsPage() {
         // Tag this user as admin - ONLY admins get order notifications
         await os.User.addTag('role', 'admin');
         setIsSubscribed(true);
+        // Save to localStorage so the bell icon disappears
+        localStorage.setItem('admin_notif_subscribed', 'true');
       } else {
         setError('Permission denied. Please allow notifications in your browser settings.');
       }
@@ -160,6 +162,8 @@ export default function AdminNotificationsPage() {
       await OneSignal.User?.PushSubscription?.optOut();
       await OneSignal.User?.removeTag('role');
       setIsSubscribed(false);
+      // Remove from localStorage so the bell icon reappears
+      localStorage.removeItem('admin_notif_subscribed');
     } catch (err: any) {
       console.error('Unsubscribe error:', err);
       setError(err?.message || 'Failed to unsubscribe');

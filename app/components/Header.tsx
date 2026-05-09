@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ShoppingBag, Phone, MapPin } from 'lucide-react';
+import { Menu, X, ShoppingBag, Phone, MapPin, Bell } from 'lucide-react';
 import { useCart } from '@/app/lib/cart-context';
 import { useLocation } from '@/app/lib/location-context';
 import LocationModal from './LocationModal';
@@ -22,6 +22,7 @@ const navLinks = [
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isNotifSubscribed, setIsNotifSubscribed] = useState(true); // Start true to hide initially
   const { itemCount, openCart } = useCart();
   const { selectedLocation, openModal } = useLocation();
 
@@ -30,6 +31,11 @@ export default function Header() {
       setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
+    
+    // Check if admin has subscribed to notifications
+    const subscribed = localStorage.getItem('admin_notif_subscribed');
+    setIsNotifSubscribed(subscribed === 'true');
+    
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -121,6 +127,25 @@ export default function Header() {
                 <Phone className="w-4 h-4" />
                 <span>0337 3594376</span>
               </a>
+
+              {/* Notification Bell - Only show if not subscribed */}
+              {!isNotifSubscribed && (
+                <Link
+                  href="/admin/notifications"
+                  className={cn(
+                    'relative p-2 rounded-full touch-manipulation active:scale-95 transition-transform duration-100 animate-pulse',
+                    isScrolled
+                      ? 'text-amber-600 hover:bg-amber-100 active:bg-amber-200'
+                      : 'text-amber-400 hover:bg-white/20 active:bg-white/30'
+                  )}
+                  aria-label="Subscribe to notifications"
+                  title="Get order notifications"
+                >
+                  <Bell className="w-6 h-6" />
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping" />
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full" />
+                </Link>
+              )}
 
               {/* Cart Button */}
               <button
