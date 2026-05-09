@@ -63,15 +63,14 @@ export default function AdminNotificationsPage() {
     // The SDK is loaded in the app head using the documented OneSignal setup.
     window.OneSignalDeferred = window.OneSignalDeferred || [];
 
-    // Timeout - if OneSignal never becomes ready, show a useful error.
+    // Timeout - if OneSignal never becomes ready, show error
     const timeout = setTimeout(() => {
       if (!oneSignalRef.current) {
-        // Switch to direct method if SDK times out
-        console.log('OneSignal SDK timed out, switching to direct method');
-        setUseDirectMethod(true);
+        console.error('OneSignal SDK failed to initialize after 30 seconds');
+        setError('OneSignal is taking too long. Please refresh and try again.');
         setIsLoading(false);
       }
-    }, 10000);
+    }, 30000);
 
     window.OneSignalDeferred.push(async function(OneSignal: any) {
       clearTimeout(timeout);
@@ -97,8 +96,7 @@ export default function AdminNotificationsPage() {
         setIsLoading(false);
       } catch (err: any) {
         console.error('OneSignal init error:', err);
-        // Switch to direct method on error
-        setUseDirectMethod(true);
+        setError('Failed to initialize OneSignal: ' + (err?.message || 'Unknown error'));
         setIsLoading(false);
       }
     });
@@ -437,7 +435,7 @@ export default function AdminNotificationsPage() {
                 </div>
               )}
               <button
-                onClick={useDirectMethod ? handleDirectUnsubscribe : handleUnsubscribe}
+                onClick={handleUnsubscribe}
                 disabled={isSubscribing}
                 className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
               >
@@ -451,73 +449,27 @@ export default function AdminNotificationsPage() {
             </div>
           ) : (
             <div className="text-center">
-              {useDirectMethod ? (
+              {!sdkReady && !error ? (
                 <>
-                  <div className="bg-blue-50 rounded-xl p-4 mb-6">
-                    <div className="flex items-center gap-2 justify-center text-blue-700 mb-2">
-                      <Zap className="w-5 h-5" />
-                      <span className="font-semibold">Direct Method</span>
-                    </div>
-                    <p className="text-sm text-blue-600">
-                      Using native browser push (faster, no SDK needed)
-                    </p>
+                  <div className="flex flex-col items-center justify-center gap-3 py-8">
+                    <Loader2 className="w-12 h-12 text-amber-600 animate-spin" />
+                    <p className="text-gray-600">Initializing OneSignal...</p>
+                    <p className="text-sm text-gray-500">This may take up to 30 seconds on first load</p>
                   </div>
-                  <button
-                    onClick={handleDirectSubscribe}
-                    disabled={isSubscribing}
-                    className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
-                  >
-                    {isSubscribing ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <Bell className="w-5 h-5" />
-                    )}
-                    Subscribe to Order Notifications
-                  </button>
-                </>
-              ) : !sdkReady && !error ? (
-                <>
-                  <div className="flex items-center justify-center gap-2 text-amber-600 mb-4">
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Loading notification service...</span>
-                  </div>
-                  <button
-                    onClick={handleDirectSubscribe}
-                    className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mb-3"
-                  >
-                    <Zap className="w-5 h-5" />
-                    Use Direct Method Instead
-                  </button>
-                  <button
-                    disabled
-                    className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed"
-                  >
-                    <Bell className="w-5 h-5" />
-                    Please wait...
-                  </button>
                 </>
               ) : (
-                <>
-                  <button
-                    onClick={handleSubscribe}
-                    disabled={isSubscribing || !sdkReady}
-                    className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50 mb-3"
-                  >
-                    {isSubscribing ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <Bell className="w-5 h-5" />
-                    )}
-                    Subscribe with OneSignal
-                  </button>
-                  <button
-                    onClick={handleDirectSubscribe}
-                    className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    <Zap className="w-5 h-5" />
-                    Or Use Direct Method
-                  </button>
-                </>
+                <button
+                  onClick={handleSubscribe}
+                  disabled={isSubscribing || !sdkReady}
+                  className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+                >
+                  {isSubscribing ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Bell className="w-5 h-5" />
+                  )}
+                  Subscribe to Order Notifications
+                </button>
               )}
               <p className="text-sm text-gray-500 mt-4">
                 Only you (admins) will receive these notifications, not customers.
