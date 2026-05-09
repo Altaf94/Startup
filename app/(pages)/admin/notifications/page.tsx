@@ -22,10 +22,18 @@ export default function AdminNotificationsPage() {
     const appId = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID;
     
     if (!appId) {
-      setError('OneSignal App ID not configured. Add NEXT_PUBLIC_ONESIGNAL_APP_ID to environment variables.');
+      setError('OneSignal App ID not configured. Add NEXT_PUBLIC_ONESIGNAL_APP_ID to Vercel environment variables.');
       setIsLoading(false);
       return;
     }
+
+    // Timeout - if SDK doesn't load in 10 seconds, show error
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        setError('OneSignal is taking too long to load. Please ensure Web Push is configured in OneSignal dashboard for your domain.');
+        setIsLoading(false);
+      }
+    }, 10000);
 
     // Load OneSignal SDK
     window.OneSignalDeferred = window.OneSignalDeferred || [];
@@ -35,10 +43,16 @@ export default function AdminNotificationsPage() {
       const script = document.createElement('script');
       script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
       script.defer = true;
+      script.onerror = () => {
+        clearTimeout(timeout);
+        setError('Failed to load notification script. Check your internet connection.');
+        setIsLoading(false);
+      };
       document.head.appendChild(script);
     }
 
     window.OneSignalDeferred.push(async function(OneSignal: any) {
+      clearTimeout(timeout);
       try {
         await OneSignal.init({
           appId: appId,
@@ -66,7 +80,7 @@ export default function AdminNotificationsPage() {
         setIsLoading(false);
       } catch (err: any) {
         console.error('OneSignal init error:', err);
-        setError('Failed to initialize: ' + (err?.message || 'Unknown error'));
+        setError('Failed to initialize: ' + (err?.message || 'Unknown error. Make sure Web Push is configured in OneSignal for this domain.'));
         setIsLoading(false);
       }
     });
