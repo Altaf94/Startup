@@ -21,7 +21,7 @@ export default function AdminNotificationsPage() {
   const oneSignalRef = useRef<any>(null);
 
   useEffect(() => {
-    // Detect iOS
+    // Detect iOS browsers that support home-screen web push.
     const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     setIsIOS(iOS);
     
@@ -62,7 +62,7 @@ export default function AdminNotificationsPage() {
       script.defer = true;
       script.onerror = () => {
         clearTimeout(timeout);
-        setError('Failed to load notification script. Check your internet connection.');
+        setError('Failed to load OneSignal. On iPhone, open the installed home-screen app and try again.');
         setIsLoading(false);
       };
       document.head.appendChild(script);
@@ -97,7 +97,7 @@ export default function AdminNotificationsPage() {
         setIsLoading(false);
       } catch (err: any) {
         console.error('OneSignal init error:', err);
-        setError('Failed to initialize: ' + (err?.message || 'Unknown error. Make sure Web Push is configured in OneSignal for this domain.'));
+        setError('Failed to initialize: ' + (err?.message || 'Unknown error. Make sure Web Push is configured in OneSignal for this domain and reopen the home-screen app.'));
         setIsLoading(false);
       }
     });
@@ -182,9 +182,9 @@ export default function AdminNotificationsPage() {
               <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Bell className="w-8 h-8 text-amber-600" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">Install App First</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Add To Home Screen First</h1>
               <p className="text-gray-600 mt-2">
-                To receive push notifications on iPhone, you need to install this website as an app.
+                iPhone web push only works after this website is added to your home screen and opened from there.
               </p>
             </div>
 
@@ -194,7 +194,7 @@ export default function AdminNotificationsPage() {
                 <li className="flex items-start gap-3">
                   <span className="flex-shrink-0 w-6 h-6 bg-amber-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
                   <div>
-                    <p>Tap the <strong>Share</strong> button</p>
+                    <p>Open this page in Safari, then tap the <strong>Share</strong> button</p>
                     <div className="flex items-center gap-1 text-blue-600 mt-1">
                       <Share className="w-5 h-5" />
                       <span className="text-sm">(at the bottom of Safari)</span>
@@ -217,13 +217,13 @@ export default function AdminNotificationsPage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="flex-shrink-0 w-6 h-6 bg-amber-600 text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
-                  <p>Open the app from your home screen and return to this page</p>
+                  <p>Open the installed app from your home screen, then tap the bell or return to this page to subscribe</p>
                 </li>
               </ol>
             </div>
 
             <p className="text-sm text-gray-500 text-center">
-              After installing, you&apos;ll be able to subscribe to push notifications.
+              Apple requires this exact flow before the native notification prompt can appear.
             </p>
           </div>
         </div>

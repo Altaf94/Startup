@@ -23,6 +23,3 @@ export { default as ContactForm } from './ContactForm';
 
 // Music Component
 export { BackgroundMusic } from './BackgroundMusic';
-
-// Push Notifications
-export { OneSignalInit } from './OneSignalInit';
