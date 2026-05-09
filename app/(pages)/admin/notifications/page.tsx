@@ -272,42 +272,51 @@ export default function AdminNotificationsPage() {
     setError('');
 
     try {
+      console.log('🔔 Starting OneSignal subscription...');
       const OneSignal = oneSignalRef.current || window.OneSignal;
       
       if (!OneSignal || !OneSignal.Notifications) {
+        console.log('⏳ OneSignal not ready, waiting...');
         // Try waiting a bit more
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
         const retryOneSignal = oneSignalRef.current || window.OneSignal;
         if (!retryOneSignal || !retryOneSignal.Notifications) {
-          setError('Notification service is loading. Please wait a few seconds and try again.');
-          setIsSubscribing(false);
-          return;
+          throw new Error('OneSignal SDK not loaded. Please refresh the page.');
         }
       }
       
       const os = oneSignalRef.current || window.OneSignal;
       
-      // Request permission
-      await os.Notifications.requestPermission();
+      console.log('📱 Requesting notification permission...');
+      // Request permission with timeout
+      const permissionPromise = os.Notifications.requestPermission();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Permission request timed out')), 15000)
+      );
       
-      // Wait a moment
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await Promise.race([permissionPromise, timeoutPromise]);
+      
+      console.log('⏱️ Waiting for permission response...');
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Check if permission was granted
       const permission = os.Notifications?.permission;
+      console.log('🔑 Permission status:', permission);
       
       if (permission) {
+        console.log('✅ Permission granted, adding admin tag...');
         // Tag this user as admin - ONLY admins get order notifications
         await os.User.addTag('role', 'admin');
+        console.log('🎉 Successfully subscribed!');
         setIsSubscribed(true);
         // Save to localStorage so the bell icon disappears
         localStorage.setItem('admin_notif_subscribed', 'true');
       } else {
-        setError('Permission denied. Please allow notifications in your browser settings.');
+        throw new Error('Permission denied. Please allow notifications in your browser settings.');
       }
     } catch (err: any) {
-      console.error('Subscription error:', err);
-      setError(err?.message || 'Failed to subscribe. Please try again.');
+      console.error('❌ Subscription error:', err);
+      setError(err?.message || 'Failed to subscribe. Try refreshing the page.');
     } finally {
       setIsSubscribing(false);
     }
