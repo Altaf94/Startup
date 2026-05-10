@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as OneSignal from '@onesignal/node-onesignal';
 import webPush from 'web-push';
-import { sql } from '@vercel/postgres';
+import { createPool } from '@vercel/postgres';
 
 export const runtime = 'nodejs';
+
+// Use pooled connection for serverless
+const pool = createPool({
+  connectionString: process.env.POSTGRES_URL_POOLED || process.env.POSTGRES_URL,
+});
 
 // Web Push VAPID configuration
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || 'BKT14c4lbywJXA5HLebK3qQRB6fjuxDZdr3wBSIUeq_OLlZE_nHxEiYdJNhXfmv0rLArLmTJH5bBO_3LP12vMD8';
@@ -16,7 +21,7 @@ webPush.setVapidDetails(
   VAPID_PRIVATE_KEY
 );
 
-// Send notification using web-push (direct method with Postgres storage)
+// Send notification using pool.web-push (direct method with Postgres storage)
 async function sendDirectPushNotifications(payload: any) {
   try {
     console.log('🔍 Fetching subscriptions from Postgres...');

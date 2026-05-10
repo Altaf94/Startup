@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import webPush from 'web-push';
-import { sql } from '@vercel/postgres';
+import { createPool } from '@vercel/postgres';
 
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || 'BKT14c4lbywJXA5HLebK3qQRB6fjuxDZdr3wBSIUeq_OLlZE_nHxEiYdJNhXfmv0rLArLmTJH5bBO_3LP12vMD8';
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || 'pdeCMS9xAQwcgFK-nsux07FbQQXrnjGBPOsOYqQjcuM';
@@ -12,11 +12,16 @@ webPush.setVapidDetails(
   VAPID_PRIVATE_KEY
 );
 
+// Use pooled connection for serverless
+const pool = createPool({
+  connectionString: process.env.POSTGRES_URL_POOLED || process.env.POSTGRES_URL,
+});
+
 export async function POST(request: NextRequest) {
   try {
     console.log('📤 Test notification endpoint called');
     
-    const { rows } = await sql`
+    const { rows } = await pool.sql`
       SELECT endpoint, keys, expiration_time 
       FROM push_subscriptions 
       WHERE is_admin = TRUE

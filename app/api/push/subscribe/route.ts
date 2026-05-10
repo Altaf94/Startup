@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import { createPool } from '@vercel/postgres';
+
+// Use pooled connection for serverless
+const pool = createPool({
+  connectionString: process.env.POSTGRES_URL_POOLED || process.env.POSTGRES_URL,
+});
 
 // Initialize table on first run
 async function ensureTableExists() {
   try {
-    await sql`
+    await pool.sql`
       CREATE TABLE IF NOT EXISTS push_subscriptions (
         id SERIAL PRIMARY KEY,
         endpoint TEXT UNIQUE NOT NULL,
@@ -36,7 +41,7 @@ export async function POST(request: NextRequest) {
     await ensureTableExists();
     
     // Insert or update subscription
-    await sql`
+    await pool.sql`
       INSERT INTO push_subscriptions (endpoint, keys, expiration_time, is_admin)
       VALUES (${subscription.endpoint}, ${JSON.stringify(subscription.keys)}, ${subscription.expirationTime || null}, TRUE)
       ON CONFLICT (endpoint) 
@@ -73,7 +78,7 @@ export async function DELETE(request: NextRequest) {
 
     await ensureTableExists();
     
-    await sql`
+    await pool.sql`
       DELETE FROM push_subscriptions 
       WHERE endpoint = ${endpoint}
     `;
