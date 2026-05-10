@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import webPush from 'web-push';
-import { sql } from '@vercel/postgres';
+import { Pool } from 'pg';
 
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || 'BKT14c4lbywJXA5HLebK3qQRB6fjuxDZdr3wBSIUeq_OLlZE_nHxEiYdJNhXfmv0rLArLmTJH5bBO_3LP12vMD8';
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || 'pdeCMS9xAQwcgFK-nsux07FbQQXrnjGBPOsOYqQjcuM';
@@ -12,15 +12,25 @@ webPush.setVapidDetails(
   VAPID_PRIVATE_KEY
 );
 
+const pool = new Pool({
+  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+
 export async function POST(request: NextRequest) {
   try {
-    console.log('📤 Test notification endpoint called');
+    console.log('Test notification endpoint called');
     
-    const { rows } = await sql`
-      SELECT endpoint, keys, expiration_time 
-      FROM push_subscriptions 
-      WHERE is_admin = TRUE
-    `;
+    const client = await pool.connect();
+    let rows;
+    try {
+      const result = await client.query(
+        'SELECT endpoint, keys, expiration_time FROM push_subscriptions WHERE is_admin = TRUE'
+      );
+      rows = result.rows;
+    } finally {
+      client.release();
+    }
 
     console.log(`Found ${rows.length} subscription(s) in Postgres`);
     
@@ -32,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     const payload = {
-      title: '🧪 Test Notification',
+      title: 'Test Notification',
       body: 'This is a test push notification from The Saucy Pan!',
       icon: '/icon-192.png',
       data: { test: true },
@@ -44,7 +54,7 @@ export async function POST(request: NextRequest) {
       rows.map((row: any) => {
         const subscription = {
           endpoint: row.endpoint,
-          keys: row.keys,
+          keys: typeof row.keys === 'string' ? JSON.parse(row.keys) : row.keys,
           expirationTime: row.expiration_time
         };
         return webPush.sendNotification(subscription, JSON.stringify(payload));
@@ -58,7 +68,7 @@ export async function POST(request: NextRequest) {
       .filter(r => r.status === 'rejected')
       .map((r: any) => r.reason?.message || 'Unknown error');
 
-    console.log(`✅ Test results: ${sent} sent, ${failed} failed`);
+    console.log(`Test results: ${sent} sent, ${failed} failed`);
 
     return NextResponse.json({
       success: sent > 0,

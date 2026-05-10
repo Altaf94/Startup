@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as OneSignal from '@onesignal/node-onesignal';
 import webPush from 'web-push';
-import { sql } from '@vercel/postgres';
+import { Pool } from 'pg';
 
 export const runtime = 'nodejs';
+
+// Postgres pool
+const pool = new Pool({
+  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
 
 // Web Push VAPID configuration
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || 'BKT14c4lbywJXA5HLebK3qQRB6fjuxDZdr3wBSIUeq_OLlZE_nHxEiYdJNhXfmv0rLArLmTJH5bBO_3LP12vMD8';
@@ -18,14 +24,14 @@ webPush.setVapidDetails(
 
 // Send notification using web-push (direct method with Postgres storage)
 async function sendDirectPushNotifications(payload: any) {
+  const client = await pool.connect();
   try {
     console.log('🔍 Fetching subscriptions from Postgres...');
     
-    const { rows } = await sql`
-      SELECT endpoint, keys, expiration_time 
-      FROM push_subscriptions 
-      WHERE is_admin = TRUE
-    `;
+    const result = await client.query(
+      'SELECT endpoint, keys, expiration_time FROM push_subscriptions WHERE is_admin = TRUE'
+    );
+    const rows = result.rows;
     
     console.log(`📋 Found ${rows.length} subscription(s) in Postgres`);
     
@@ -40,7 +46,7 @@ async function sendDirectPushNotifications(payload: any) {
       rows.map((row: any, index: number) => {
         const subscription = {
           endpoint: row.endpoint,
-          keys: row.keys,
+          keys: typeof row.keys === 'string' ? JSON.parse(row.keys) : row.keys,
           expirationTime: row.expiration_time
         };
         console.log(`  Sending to device ${index + 1}:`, subscription.endpoint.substring(0, 50) + '...');
@@ -63,6 +69,8 @@ async function sendDirectPushNotifications(payload: any) {
   } catch (error) {
     console.error('❌ Direct push error:', error);
     return { sent: 0, failed: 0 };
+  } finally {
+    client.release();
   }
 }
 

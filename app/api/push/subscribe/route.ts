@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import { Pool } from 'pg';
+
+// Create connection pool
+const pool = new Pool({
+  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
 
 // Initialize table on first run
 async function ensureTableExists() {
+  const client = await pool.connect();
   try {
-    await sql`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS push_subscriptions (
         id SERIAL PRIMARY KEY,
         endpoint TEXT UNIQUE NOT NULL,
@@ -13,9 +20,11 @@ async function ensureTableExists() {
         is_admin BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `;
+    `);
   } catch (error) {
     console.error('Error creating table:', error);
+  } finally {
+    client.release();
   }
 }
 
@@ -35,22 +44,26 @@ export async function POST(request: NextRequest) {
 
     await ensureTableExists();
     
-    // Insert or update subscription
-    await sql`
-      INSERT INTO push_subscriptions (endpoint, keys, expiration_time, is_admin)
-      VALUES (${subscription.endpoint}, ${JSON.stringify(subscription.keys)}, ${subscription.expirationTime || null}, TRUE)
-      ON CONFLICT (endpoint) 
-      DO UPDATE SET 
-        keys = ${JSON.stringify(subscription.keys)},
-        expiration_time = ${subscription.expirationTime || null},
-        created_at = CURRENT_TIMESTAMP
-    `;
-    
-    console.log('✅ Subscription saved to Postgres!');
+    const client = await pool.connect();
+    try {
+      await client.query(`
+        INSERT INTO push_subscriptions (endpoint, keys, expiration_time, is_admin)
+        VALUES ($1, $2, $3, TRUE)
+        ON CONFLICT (endpoint) 
+        DO UPDATE SET 
+          keys = $2,
+          expiration_time = $3,
+          created_at = CURRENT_TIMESTAMP
+      `, [subscription.endpoint, JSON.stringify(subscription.keys), subscription.expirationTime || null]);
+      
+      console.log('Subscription saved to Postgres!');
+    } finally {
+      client.release();
+    }
 
     return NextResponse.json({ success: true, message: 'Subscribed successfully!' });
   } catch (error) {
-    console.error('❌ Error saving subscription:', error);
+    console.error('Error saving subscription:', error);
     return NextResponse.json(
       { error: 'Failed to save subscription: ' + (error as Error).message },
       { status: 500 }
@@ -73,16 +86,17 @@ export async function DELETE(request: NextRequest) {
 
     await ensureTableExists();
     
-    await sql`
-      DELETE FROM push_subscriptions 
-      WHERE endpoint = ${endpoint}
-    `;
-    
-    console.log('✅ Subscription removed from Postgres');
+    const client = await pool.connect();
+    try {
+      await client.query('DELETE FROM push_subscriptions WHERE endpoint = $1', [endpoint]);
+      console.log('Subscription removed from Postgres');
+    } finally {
+      client.release();
+    }
 
     return NextResponse.json({ success: true, message: 'Unsubscribed successfully!' });
   } catch (error) {
-    console.error('❌ Error removing subscription:', error);
+    console.error('Error removing subscription:', error);
     return NextResponse.json(
       { error: 'Failed to remove subscription: ' + (error as Error).message },
       { status: 500 }
