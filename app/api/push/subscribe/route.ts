@@ -1,18 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createPool } from '@vercel/postgres';
-
-// Create pool on demand
-function getPool() {
-  return createPool({
-    connectionString: process.env.POSTGRES_URL_POOLED || process.env.POSTGRES_URL,
-  });
-}
+import { sql } from '@vercel/postgres';
 
 // Initialize table on first run
 async function ensureTableExists() {
   try {
-    const pool = getPool();
-    await pool.sql`
+    await sql`
       CREATE TABLE IF NOT EXISTS push_subscriptions (
         id SERIAL PRIMARY KEY,
         endpoint TEXT UNIQUE NOT NULL,
@@ -52,8 +44,7 @@ export async function POST(request: NextRequest) {
       DO UPDATE SET 
         keys = ${JSON.stringify(subscription.keys)},
         expiration_time = ${subscription.expirationTime || null},
-        created_at = CURRENT_TIMESTAMP
-    `;
+    await 
     
     console.log('✅ Subscription saved to Postgres!');
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import webPush from 'web-push';
-import { createPool } from '@vercel/postgres';
+import { sql } from '@vercel/postgres';
 
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || 'BKT14c4lbywJXA5HLebK3qQRB6fjuxDZdr3wBSIUeq_OLlZE_nHxEiYdJNhXfmv0rLArLmTJH5bBO_3LP12vMD8';
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || 'pdeCMS9xAQwcgFK-nsux07FbQQXrnjGBPOsOYqQjcuM';
@@ -11,13 +11,6 @@ webPush.setVapidDetails(
   VAPID_PUBLIC_KEY,
   VAPID_PRIVATE_KEY
 );
-
-// Create pool on demand
-function getPool() {
-  return createPool({
-    connectionString: process.env.POSTGRES_URL_POOLED || process.env.POSTGRES_URL,
-  });
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,8 +23,7 @@ export async function POST(request: NextRequest) {
       WHERE is_admin = TRUE
     `;
 
-    console.log(`Found ${rows.length} subscription(s) in Postgres`);
-    
+    consol{ rows } = await 
     if (rows.length === 0) {
       return NextResponse.json({
         success: false,

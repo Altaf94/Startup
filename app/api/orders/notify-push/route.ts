@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as OneSignal from '@onesignal/node-onesignal';
 import webPush from 'web-push';
-import { createPool } from '@vercel/postgres';
+import { sql } from '@vercel/postgres';
 
 export const runtime = 'nodejs';
-
-// Create pool on demand
-function getPool() {
-  return createPool({
-    connectionString: process.env.POSTGRES_URL_POOLED || process.env.POSTGRES_URL,
-  });
-}
 
 // Web Push VAPID configuration
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || 'BKT14c4lbywJXA5HLebK3qQRB6fjuxDZdr3wBSIUeq_OLlZE_nHxEiYdJNhXfmv0rLArLmTJH5bBO_3LP12vMD8';
@@ -28,8 +21,7 @@ async function sendDirectPushNotifications(payload: any) {
   try {
     console.log('🔍 Fetching subscriptions from Postgres...');
     
-    const pool = getPool();
-    const { rows } = await pool.sql`
+    const { rows } = await sql`
       SELECT endpoint, keys, expiration_time 
       FROM push_subscriptions 
       WHERE is_admin = TRUE
