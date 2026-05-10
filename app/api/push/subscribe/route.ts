@@ -36,15 +36,15 @@ export async function POST(request: NextRequest) {
     await ensureTableExists();
     
     // Insert or update subscription
-    const pool = getPool();
-    await pool.sql`
+    await sql`
       INSERT INTO push_subscriptions (endpoint, keys, expiration_time, is_admin)
       VALUES (${subscription.endpoint}, ${JSON.stringify(subscription.keys)}, ${subscription.expirationTime || null}, TRUE)
       ON CONFLICT (endpoint) 
       DO UPDATE SET 
         keys = ${JSON.stringify(subscription.keys)},
         expiration_time = ${subscription.expirationTime || null},
-    await 
+        created_at = CURRENT_TIMESTAMP
+    `;
     
     console.log('✅ Subscription saved to Postgres!');
 
@@ -72,9 +72,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     await ensureTableExists();
-    const pool = getPool();
     
-    await pool.sql`
+    await sql`
       DELETE FROM push_subscriptions 
       WHERE endpoint = ${endpoint}
     `;

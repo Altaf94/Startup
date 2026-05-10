@@ -16,14 +16,14 @@ export async function POST(request: NextRequest) {
   try {
     console.log('📤 Test notification endpoint called');
     
-    const pool = getPool();
-    const { rows } = await pool.sql`
+    const { rows } = await sql`
       SELECT endpoint, keys, expiration_time 
       FROM push_subscriptions 
       WHERE is_admin = TRUE
     `;
 
-    consol{ rows } = await 
+    console.log(`Found ${rows.length} subscription(s) in Postgres`);
+    
     if (rows.length === 0) {
       return NextResponse.json({
         success: false,
