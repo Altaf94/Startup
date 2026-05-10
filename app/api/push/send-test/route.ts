@@ -12,15 +12,18 @@ webPush.setVapidDetails(
   VAPID_PRIVATE_KEY
 );
 
-// Use pooled connection for serverless
-const pool = createPool({
-  connectionString: process.env.POSTGRES_URL_POOLED || process.env.POSTGRES_URL,
-});
+// Create pool on demand
+function getPool() {
+  return createPool({
+    connectionString: process.env.POSTGRES_URL_POOLED || process.env.POSTGRES_URL,
+  });
+}
 
 export async function POST(request: NextRequest) {
   try {
     console.log('📤 Test notification endpoint called');
     
+    const pool = getPool();
     const { rows } = await pool.sql`
       SELECT endpoint, keys, expiration_time 
       FROM push_subscriptions 

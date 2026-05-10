@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createPool } from '@vercel/postgres';
 
-// Use pooled connection for serverless
-const pool = createPool({
-  connectionString: process.env.POSTGRES_URL_POOLED || process.env.POSTGRES_URL,
-});
+// Create pool on demand
+function getPool() {
+  return createPool({
+    connectionString: process.env.POSTGRES_URL_POOLED || process.env.POSTGRES_URL,
+  });
+}
 
 // Initialize table on first run
 async function ensureTableExists() {
   try {
+    const pool = getPool();
     await pool.sql`
       CREATE TABLE IF NOT EXISTS push_subscriptions (
         id SERIAL PRIMARY KEY,
@@ -41,6 +44,7 @@ export async function POST(request: NextRequest) {
     await ensureTableExists();
     
     // Insert or update subscription
+    const pool = getPool();
     await pool.sql`
       INSERT INTO push_subscriptions (endpoint, keys, expiration_time, is_admin)
       VALUES (${subscription.endpoint}, ${JSON.stringify(subscription.keys)}, ${subscription.expirationTime || null}, TRUE)
@@ -77,6 +81,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     await ensureTableExists();
+    const pool = getPool();
     
     await pool.sql`
       DELETE FROM push_subscriptions 
