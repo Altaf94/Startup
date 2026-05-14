@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { CartProvider } from "@/app/lib/cart-context";
 import { LocationProvider } from "@/app/lib/location-context";
@@ -117,8 +118,10 @@ export default function RootLayout({
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         {/* Schema.org markup for restaurant */}
-        <script
+        <Script
+          id="restaurant-schema"
           type="application/ld+json"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
@@ -158,9 +161,15 @@ export default function RootLayout({
             }),
           }}
         />
-        <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer />
+        <Script
+          id="onesignal-sdk"
+          src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"
+          strategy="afterInteractive"
+        />
         {oneSignalAppId ? (
-          <script
+          <Script
+            id="onesignal-init"
+            strategy="afterInteractive"
             dangerouslySetInnerHTML={{
               __html: `
                 window.OneSignalDeferred = window.OneSignalDeferred || [];
@@ -176,7 +185,9 @@ export default function RootLayout({
         ) : null}
         
         {/* Security Initialization */}
-        <script
+        <Script
+          id="security-init"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
