@@ -56,11 +56,15 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // Always open modal on every page load; restore saved values so user can confirm instantly
+  // Only show modal once per session if no confirmed location exists
   useEffect(() => {
     setIsHydrated(true);
     const savedLocation = localStorage.getItem('the-saucy-pan-location');
     const savedCoords = localStorage.getItem('the-saucy-pan-coords');
+    const modalShownThisSession = sessionStorage.getItem('the-saucy-pan-modal-shown');
+    
+    let hasConfirmedLocation = false;
+    
     if (savedLocation && savedCoords) {
       try {
         const coords = JSON.parse(savedCoords) as { lat: number; lng: number };
@@ -73,11 +77,20 @@ export function LocationProvider({ children }: { children: ReactNode }) {
         );
         const distKm = distanceMeters / 1000;
         const fee = getDeliveryFee(distKm);
-        if (fee !== null) setDeliveryFee(fee);
+        if (fee !== null) {
+          setDeliveryFee(fee);
+          hasConfirmedLocation = true; // Location is valid and in delivery range
+        }
       } catch { /* ignore bad JSON */ }
     }
-    // Always show modal regardless
-    setTimeout(() => setIsModalOpen(true), 300);
+    
+    // Only show modal if:
+    // 1. No confirmed location exists, AND
+    // 2. Modal hasn't been shown this session yet
+    if (!hasConfirmedLocation && !modalShownThisSession) {
+      sessionStorage.setItem('the-saucy-pan-modal-shown', 'true');
+      setIsModalOpen(true);
+    }
   }, []);
 
   const setSelectedLocation = (location: string) => {
