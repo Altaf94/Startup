@@ -93,7 +93,7 @@ export default function VideoSection() {
   );
 }
 
-// Lazy loading video component - only loads when in viewport
+// Lazy loading video component - only loads and plays when in viewport
 function LazyVideo({ video }: { video: typeof videos[0] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -117,6 +117,15 @@ function LazyVideo({ video }: { video: typeof videos[0] }) {
     return () => observer.disconnect();
   }, []);
 
+  // Auto-play video when it comes into view
+  useEffect(() => {
+    if (isInView && videoRef.current) {
+      videoRef.current.play().catch(() => {
+        // Autoplay blocked - user can click to play
+      });
+    }
+  }, [isInView]);
+
   return (
     <div ref={containerRef} className="aspect-[4/5] relative overflow-hidden">
       {isInView ? (
@@ -125,7 +134,7 @@ function LazyVideo({ video }: { video: typeof videos[0] }) {
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           poster={video.poster}
           controls
-          preload="none"
+          preload="metadata"
           playsInline
           muted
           loop
