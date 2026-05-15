@@ -1,7 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Play, ChefHat, ArrowRight } from 'lucide-react';
+import { useRef, useEffect, useState } from 'react';
+import { Play } from 'lucide-react';
 import { fadeInUp, staggerContainer, staggerItem } from '@/app/lib/animations';
 
 const videos = [
@@ -75,55 +76,77 @@ export default function VideoSection() {
           viewport={{ once: true, margin: "-50px" }}
           className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
         >
-          {videos.map((video, index) => (
+          {videos.map((video) => (
             <motion.div
               key={video.id}
               variants={staggerItem}
               className="group"
             >
               <div className="bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 border border-amber-100 hover:border-amber-300">
-
-                <div className="aspect-[4/5] relative overflow-hidden">
-                  <video
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    poster={video.poster}
-                    controls
-                    preload="metadata"
-                    playsInline
-                    autoPlay
-                    muted
-                    loop
-                  >
-                    <source src={video.src} type="video/mp4" />
-                    <source src={video.src} type="video/x-m4v" />
-                    Your browser does not support the video tag.
-                  </video>
-
-                  {/* Fallback for video loading errors */}
-                  <div className="video-fallback absolute inset-0 bg-gray-100 flex items-center justify-center hidden">
-                    <div className="text-center p-4">
-                      <ChefHat className="w-12 h-12 text-amber-400 mx-auto mb-2" />
-                      <p className="text-gray-600 text-sm">Video coming soon</p>
-                      <p className="text-gray-400 text-xs mt-1">{video.title}</p>
-                    </div>
-                  </div>
-
-                  {/* Play Button */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-white/95 backdrop-blur-md rounded-full p-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-75 group-hover:scale-100 shadow-xl">
-                      <Play className="w-8 h-8 text-amber-600" />
-                    </div>
-                  </div>
-
-                  {/* Decorative Elements */}
-                  <div className="absolute top-4 right-4 w-6 h-6 border-2 border-white/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="absolute bottom-4 left-4 w-4 h-4 bg-amber-400/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity animate-pulse"></div>
-                </div>
+                <LazyVideo video={video} />
               </div>
             </motion.div>
           ))}
         </motion.div>
       </div>
     </section>
+  );
+}
+
+// Lazy loading video component - only loads when in viewport
+function LazyVideo({ video }: { video: typeof videos[0] }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isInView, setIsInView] = useState(false);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '100px' }
+    );
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={containerRef} className="aspect-[4/5] relative overflow-hidden">
+      {isInView ? (
+        <video
+          ref={videoRef}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          poster={video.poster}
+          controls
+          preload="none"
+          playsInline
+          muted
+          loop
+        >
+          <source src={video.src} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      ) : (
+        <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+          <div className="text-center">
+            <Play className="w-12 h-12 text-amber-400 mx-auto" />
+          </div>
+        </div>
+      )}
+
+      {/* Play Button Overlay */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="bg-white/95 backdrop-blur-md rounded-full p-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-75 group-hover:scale-100 shadow-xl">
+          <Play className="w-8 h-8 text-amber-600" />
+        </div>
+      </div>
+    </div>
   );
 }

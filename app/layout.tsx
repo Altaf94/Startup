@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
+import { Suspense } from "react";
 import { CartProvider } from "@/app/lib/cart-context";
 import { LocationProvider } from "@/app/lib/location-context";
-import { Header, Footer, CartDrawer, BackgroundMusic } from "@/app/components";
+import { Header, Footer, CartDrawer, BackgroundMusic, NavigationProgress } from "@/app/components";
 
 const siteUrl = "https://www.thesaucypan.com";
 const oneSignalAppId = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "a7a990dd-02e8-4d63-bf78-0f75cc879629";
@@ -222,14 +223,17 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col font-sans bg-white text-gray-900">
+        <Suspense fallback={null}>
+          <NavigationProgress />
+        </Suspense>
         <BackgroundMusic />
         <CartProvider>
-            <LocationProvider>
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <CartDrawer />
-            </LocationProvider>
+          <LocationProvider>
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+            <CartDrawer />
+          </LocationProvider>
         </CartProvider>
       </body>
     </html>

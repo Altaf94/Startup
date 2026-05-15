@@ -74,7 +74,7 @@ export function BackgroundMusic() {
     <>
       <audio
         ref={audioRef}
-        preload="auto"
+        preload="none"
         style={{ display: 'none' }}
       >
         <source src="/images/It Looks Like Love.mp3" type="audio/mpeg" />

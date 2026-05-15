@@ -3,6 +3,7 @@ export { default as Header } from './Header';
 export { default as Footer } from './Footer';
 export { default as CartDrawer } from './CartDrawer';
 export { default as LocationModal } from './LocationModal';
+export { default as NavigationProgress } from './NavigationProgress';
 
 // Home Page Components
 export { default as Hero } from './Hero';

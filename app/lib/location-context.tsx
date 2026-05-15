@@ -91,7 +91,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
       sessionStorage.setItem('the-saucy-pan-modal-shown', 'true');
       setIsModalOpen(true);
     }
-  }, []);
+  }, [setDeliveryFee]);
 
   const setSelectedLocation = (location: string) => {
     setSelectedLocationState(location);
